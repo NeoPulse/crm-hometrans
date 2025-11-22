@@ -20,6 +20,13 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'role',
+        'is_active',
+        'phone',
+        'address1',
+        'address2',
+        'headline',
+        'notes',
         'password',
     ];
 
@@ -43,6 +50,47 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Legal profile relation.
+     */
+    public function legalProfile()
+    {
+        return $this->hasOne(LegalProfile::class);
+    }
+
+    /**
+     * Client profile relation.
+     */
+    public function clientProfile()
+    {
+        return $this->hasOne(ClientProfile::class);
+    }
+
+    /**
+     * Attentions destined to this user.
+     */
+    public function attentions()
+    {
+        return $this->hasMany(Attention::class);
+    }
+
+    /**
+     * Chat messages authored by this user.
+     */
+    public function chatMessages()
+    {
+        return $this->hasMany(CaseChatMessage::class, 'sender_id');
+    }
+
+    /**
+     * Activity log entries the user generated.
+     */
+    public function activityLogs()
+    {
+        return $this->hasMany(ActivityLog::class);
     }
 }
