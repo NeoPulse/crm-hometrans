@@ -26,7 +26,7 @@
                     @if($user?->role === 'admin')
                         <li class="nav-item"><a class="nav-link" href="{{ route('cases.index') }}">Cases</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('clients.index') }}">Users</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Legals</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('legals.index') }}">Legals</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Profile</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Logs</a></li>
                     @endif

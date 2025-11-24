@@ -112,6 +112,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Cases where the user is the selling side legal.
+     */
+    public function sellLegalCases()
+    {
+        return $this->hasMany(CaseFile::class, 'sell_legal_id');
+    }
+
+    /**
+     * Cases where the user is the buying side legal.
+     */
+    public function buyLegalCases()
+    {
+        return $this->hasMany(CaseFile::class, 'buy_legal_id');
+    }
+
+    /**
      * Resolved avatar URL with placeholder fallback.
      */
     public function getAvatarUrlAttribute(): string
