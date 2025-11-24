@@ -1,0 +1,27 @@
+/* Base typography using Instrument Sans for consistency. */
+body {
+    font-family: 'Instrument Sans', Arial, sans-serif;
+}
+
+/* Avatar styling to enforce 50x50 circular images. */
+.avatar-50 {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+}
+
+/* Provide subtle hover state for team members. */
+.team-member:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+/* Ensure nav pills align with the clean dashboard look. */
+.nav-pills .nav-link {
+    border-radius: 999px;
+}
+
+/* Maintain consistent card appearance. */
+.card {
+    border-color: #e9ecef;
+}
