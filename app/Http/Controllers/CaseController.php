@@ -54,6 +54,8 @@ class CaseController extends Controller
             'public_link' => Str::random(10),
         ]);
 
+        $this->logActivity('case_created', $case, 'Case created');
+
         return redirect()->route('cases.edit', $case);
     }
 
@@ -62,7 +64,8 @@ class CaseController extends Controller
         $this->authorizeAdmin();
         $users = User::where('is_active', true)->orderBy('name')->get();
         $stages = $case->stages()->with('tasks')->orderBy('id')->get();
-        return view('cases.edit', compact('case', 'users', 'stages'));
+        $caseHeaderData = $this->buildCaseHeaderData($case);
+        return view('cases.edit', compact('case', 'users', 'stages', 'caseHeaderData'));
     }
 
     public function update(Request $request, CaseFile $case)
@@ -87,6 +90,8 @@ class CaseController extends Controller
             'buy_client_id' => $request->buy_client_id,
         ])->save();
 
+        $this->logActivity('case_updated', $case, 'Case data saved');
+
         return back()->with('status', 'Case saved');
     }
 
@@ -98,6 +103,8 @@ class CaseController extends Controller
             'case_id' => $case->id,
             'name' => $request->name,
         ]);
+
+        $this->logActivity('stage_added', $case, 'Stage added to case');
 
         return back()->with('status', 'Stage added');
     }
@@ -119,6 +126,8 @@ class CaseController extends Controller
             'status' => $request->status,
             'deadline' => $request->deadline,
         ]);
+
+        $this->logActivity('task_created', $case, 'Task added to case');
 
         return back()->with('status', 'Task created');
     }
@@ -147,7 +156,8 @@ class CaseController extends Controller
         }
 
         $stages = $case->stages()->with('tasks')->orderBy('id')->get();
-        return view('cases.show', compact('case', 'stages'));
+        $caseHeaderData = $this->buildCaseHeaderData($case);
+        return view('cases.show', compact('case', 'stages', 'caseHeaderData'));
     }
 
     protected function authorizeAdmin(): void
@@ -155,5 +165,52 @@ class CaseController extends Controller
         if (Auth::user()->role !== 'admin') {
             abort(403);
         }
+    }
+
+    /**
+     * Prepare header metadata for case pages.
+     */
+    protected function buildCaseHeaderData(CaseFile $case): array
+    {
+        $case->loadMissing('sellLegal.legalProfile', 'buyLegal.legalProfile');
+        $admin = User::where('role', 'admin')->orderBy('id')->first();
+
+        return [
+            'postal_code' => $case->postal_code,
+            'deadline' => $case->deadline ? $case->deadline->format('d/M') : 'No deadline',
+            'people' => [
+                $this->mapPerson($admin, 'Project manager'),
+                $this->mapPerson($case->sellLegal, "Seller's solicitor", true),
+                $this->mapPerson($case->buyLegal, "Buyer's solicitor", true),
+            ],
+        ];
+    }
+
+    /**
+     * Map person data into tooltip-friendly structure.
+     */
+    protected function mapPerson(?User $user, string $label, bool $includeOffice = false): array
+    {
+        $name = $user?->name ?? 'Not assigned';
+        $office = $includeOffice ? $user?->legalProfile?->office : null;
+        $email = $user?->email;
+        $phone = $user?->phone;
+
+        $tooltip = '<div><strong>' . e($name) . '</strong></div>';
+        if ($office) {
+            $tooltip .= '<div>Office: ' . e($office) . '</div>';
+        }
+        if ($phone) {
+            $tooltip .= '<div><a class="text-white" href="tel:' . e($phone) . '">' . e($phone) . '</a></div>';
+        }
+        if ($email) {
+            $tooltip .= '<div><a class="text-white" href="mailto:' . e($email) . '">' . e($email) . '</a></div>';
+        }
+
+        return [
+            'label' => $label,
+            'avatar' => $user?->avatar_url ?? asset('images/avatar-placeholder.svg'),
+            'tooltip' => $tooltip,
+        ];
     }
 }

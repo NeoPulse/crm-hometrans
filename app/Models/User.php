@@ -76,7 +76,7 @@ class User extends Authenticatable
      */
     public function attentions()
     {
-        return $this->hasMany(Attention::class);
+        return $this->hasMany(Attention::class)->where('target_type', 'user');
     }
 
     /**
@@ -93,5 +93,31 @@ class User extends Authenticatable
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
+     * Cases where the user is the selling client.
+     */
+    public function sellCases()
+    {
+        return $this->hasMany(CaseFile::class, 'sell_client_id');
+    }
+
+    /**
+     * Cases where the user is the buying client.
+     */
+    public function buyCases()
+    {
+        return $this->hasMany(CaseFile::class, 'buy_client_id');
+    }
+
+    /**
+     * Resolved avatar URL with placeholder fallback.
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        return $this->avatar_path
+            ? asset($this->avatar_path)
+            : asset('images/avatar-placeholder.svg');
     }
 }

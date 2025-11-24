@@ -52,5 +52,5 @@
         </tbody>
     </table>
 </div>
-{{ $cases->links() }}
+{{ $cases->links('pagination::bootstrap-5') }}
 @endsection
