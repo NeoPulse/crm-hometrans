@@ -26,6 +26,10 @@ class CaseFile extends Model
         'public_link',
     ];
 
+    protected $casts = [
+        'deadline' => 'datetime',
+    ];
+
     /**
      * Auto-generate a public link when absent.
      */
