@@ -32,11 +32,14 @@ class AuthController extends Controller
 
         Auth::login($user, true);
 
+        $this->logActivity('login', $user, 'User signed in');
+
         return redirect()->intended('/');
     }
 
     public function logout()
     {
+        $this->logActivity('logout', auth()->user(), 'User signed out');
         Auth::logout();
         return redirect()->route('login');
     }
