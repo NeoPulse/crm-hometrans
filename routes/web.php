@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CaseController;
+use App\Http\Controllers\CaseChatController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\DashboardController;
@@ -39,4 +40,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/legals/{legal}', [LegalController::class, 'show'])->name('legals.show');
     Route::put('/legals/{legal}', [LegalController::class, 'update'])->name('legals.update');
     Route::post('/legals/{legal}/password', [LegalController::class, 'generatePassword'])->name('legals.password');
+
+    Route::patch('/cases/{case}/stages/{stage}', [CaseController::class, 'updateStage'])->name('cases.stages.update');
+    Route::delete('/cases/{case}/stages/{stage}', [CaseController::class, 'deleteStage'])->name('cases.stages.delete');
+    Route::patch('/cases/{case}/tasks/{task}', [CaseController::class, 'updateTask'])->name('cases.tasks.update');
+    Route::delete('/cases/{case}/tasks/{task}', [CaseController::class, 'deleteTask'])->name('cases.tasks.delete');
+    Route::post('/cases/{case}/tasks/quick', [CaseController::class, 'quickAddTask'])->name('cases.tasks.quick');
 });
+
+Route::match(['get', 'post'], '/case/{case}', [CaseController::class, 'publicShow'])->name('cases.public');
+Route::get('/case/{case}/chat', [CaseChatController::class, 'index'])->name('cases.chat.index');
+Route::post('/case/{case}/chat', [CaseChatController::class, 'store'])->middleware('auth')->name('cases.chat.store');
+Route::delete('/case/{case}/chat/{message}', [CaseChatController::class, 'destroy'])->middleware('auth')->name('cases.chat.delete');
