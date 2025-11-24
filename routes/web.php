@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CaseController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,4 +33,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
     Route::post('/clients/{client}/attention/{type}', [ClientController::class, 'toggleAttention'])->name('clients.attention');
+
+    Route::get('/legals', [LegalController::class, 'index'])->name('legals.index');
+    Route::post('/legals', [LegalController::class, 'store'])->name('legals.store');
+    Route::get('/legals/{legal}', [LegalController::class, 'show'])->name('legals.show');
+    Route::put('/legals/{legal}', [LegalController::class, 'update'])->name('legals.update');
+    Route::post('/legals/{legal}/password', [LegalController::class, 'generatePassword'])->name('legals.password');
 });
