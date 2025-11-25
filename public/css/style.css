@@ -25,3 +25,8 @@ body {
 .card {
     border-color: #e9ecef;
 }
+
+/* Make clickable table rows show a pointer cursor for clarity. */
+.table-row-link {
+    cursor: pointer;
+}

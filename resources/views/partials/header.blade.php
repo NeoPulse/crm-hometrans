@@ -14,7 +14,7 @@
             </div>
             <nav aria-label="Primary navigation">
                 <ul class="nav nav-pills align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="#">Cases</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ $isAuthenticated ? route('home') : '#' }}">Cases</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Users</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Legals</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Profile</a></li>
