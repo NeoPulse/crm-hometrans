@@ -3,9 +3,34 @@
     // Determine whether the user is authenticated and resolve logout routing accordingly.
     $isAuthenticated = auth()->check();
     $logoutRoute = $isAuthenticated ? route('logout') : null;
+
+    // Resolve user role flags for conditional navigation rendering.
     $user = auth()->user();
     $isAdmin = $user && $user->role === 'admin';
+    $isLegal = $user && $user->role === 'legal';
     $casesRoute = $user && $user->role === 'legal' ? route('casemanager.legal') : route('casemanager.index');
+
+    // Build a role-aware navigation definition to keep visibility rules concise.
+    $navLinks = [];
+    if ($isAdmin) {
+        $navLinks = [
+            ['label' => 'Dashboard', 'route' => route('dashboard'), 'active' => request()->routeIs('dashboard')],
+            ['label' => 'Cases', 'route' => $casesRoute, 'active' => request()->routeIs('casemanager.*')],
+            ['label' => 'Clients', 'route' => route('clients.index'), 'active' => request()->routeIs('clients.*')],
+            ['label' => 'Legals', 'route' => route('legals.index'), 'active' => request()->routeIs('legals.*')],
+            ['label' => 'Profile', 'route' => route('profile.show'), 'active' => request()->routeIs('profile.*')],
+            ['label' => 'Logs', 'route' => route('logs.index'), 'active' => request()->routeIs('logs.*')],
+        ];
+    } elseif ($isLegal) {
+        $navLinks = [
+            ['label' => 'Cases', 'route' => $casesRoute, 'active' => request()->routeIs('casemanager.*')],
+            ['label' => 'Profile', 'route' => route('profile.show'), 'active' => request()->routeIs('profile.*')],
+        ];
+    } elseif ($isAuthenticated) {
+        $navLinks = [
+            ['label' => 'Cases', 'route' => $casesRoute, 'active' => request()->routeIs('casemanager.*')],
+        ];
+    }
 @endphp
 
 <div class="bg-white border-bottom shadow-sm">
@@ -16,17 +41,13 @@
                 <div class="fw-bold fs-5 text-primary">{{ config('app.name', 'HomeTrans CRM') }}</div>
             </div>
             <nav aria-label="Primary navigation">
+                <!-- Render the navigation items appropriate for the current user role. -->
                 <ul class="nav nav-pills align-items-center">
-                    @if($isAdmin)
-                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Dashboard</a></li>
-                    @endif
-                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('casemanager.*') ? 'active' : '' }}" href="{{ $isAuthenticated ? $casesRoute : '#' }}">Cases</a></li>
-                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('clients.*') ? 'active' : '' }}" href="{{ $isAdmin ? route('clients.index') : '#' }}">Clients</a></li>
-                    @if($isAdmin)
-                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('legals.*') ? 'active' : '' }}" href="{{ route('legals.index') }}">Legals</a></li>
-                    @endif
-                    <li class="nav-item"><a class="nav-link" href="#">Profile</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Logs</a></li>
+                    @foreach($navLinks as $link)
+                        <li class="nav-item">
+                            <a class="nav-link {{ $link['active'] ? 'active' : '' }}" href="{{ $link['route'] }}">{{ $link['label'] }}</a>
+                        </li>
+                    @endforeach
                     <li class="nav-item">
                         @if($isAuthenticated)
                             <form method="POST" action="{{ $logoutRoute }}">
