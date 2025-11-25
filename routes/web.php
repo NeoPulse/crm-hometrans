@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CaseManagerController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LegalController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Public route serving the login form for guests.
@@ -30,6 +32,10 @@ Route::middleware('auth')->group(function () {
     // Administrative dashboard entry point.
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Profile section for administrators and legal users to update their password.
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
     // Case manager endpoints for admin and legal users.
     Route::get('/casemanager', [CaseManagerController::class, 'index'])->name('casemanager.index');
     Route::post('/casemanager', [CaseManagerController::class, 'store'])->name('casemanager.store');
@@ -54,4 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/legals/{legal}/edit', [LegalController::class, 'edit'])->name('legals.edit');
     Route::post('/legals/{legal}', [LegalController::class, 'update'])->name('legals.update');
     Route::post('/legals/{legal}/password', [LegalController::class, 'generatePassword'])->name('legals.password');
+
+    // Activity log listing for administrators.
+    Route::get('/logs', [ActivityLogController::class, 'index'])->name('logs.index');
 });
