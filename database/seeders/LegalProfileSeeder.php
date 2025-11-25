@@ -28,26 +28,6 @@ class LegalProfileSeeder extends Seeder
                 'created_at' => $timestamp,
                 'updated_at' => $timestamp,
             ],
-            [
-                'user_id' => 2,
-                'company' => 'City Conveyancing',
-                'website' => 'https://cityconveyancing.example.com',
-                'locality' => 'Manchester',
-                'person' => 'Laura Legal',
-                'office' => '12 King Street, Manchester',
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ],
-            [
-                'user_id' => 2,
-                'company' => 'Harbour & Co',
-                'website' => 'https://harbourco.example.com',
-                'locality' => 'Bristol',
-                'person' => 'Laura Legal',
-                'office' => '8 Anchor Road, Bristol',
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ],
         ]);
     }
 }

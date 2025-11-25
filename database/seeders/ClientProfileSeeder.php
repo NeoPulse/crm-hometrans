@@ -26,22 +26,6 @@ class ClientProfileSeeder extends Seeder
                 'created_at' => $timestamp,
                 'updated_at' => $timestamp,
             ],
-            [
-                'user_id' => 3,
-                'first_name' => 'Caroline',
-                'last_name' => 'Client',
-                'letter' => 'Requesting clarity on outstanding documents for exchange.',
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ],
-            [
-                'user_id' => 3,
-                'first_name' => 'Carter',
-                'last_name' => 'Client',
-                'letter' => 'Needs updates on buyer enquiries ahead of completion.',
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ],
         ]);
     }
 }
