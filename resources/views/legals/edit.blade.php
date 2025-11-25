@@ -37,10 +37,27 @@
     <!-- Two-column form capturing activation state and solicitor details. -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <form method="POST" action="{{ route('legals.update', $legal) }}" id="legal-form" novalidate>
+            <form method="POST" action="{{ route('legals.update', $legal) }}" id="legal-form" novalidate enctype="multipart/form-data">
                 @csrf
                 <div class="row g-3 align-items-start">
                     <div class="col-12 col-lg-6">
+                        {{-- Avatar preview and upload control for the legal profile. --}}
+                        @php
+                            $avatarPath = $legal->avatar_path ? asset($legal->avatar_path) : asset('images/avatar-placeholder.svg');
+                        @endphp
+                        <div class="d-flex align-items-center gap-3 mb-3 p-3 border rounded">
+                            <img src="{{ $avatarPath }}" alt="Legal avatar" class="rounded-circle avatar-50">
+                            <div class="flex-grow-1">
+                                <label for="avatar" class="form-label">Avatar</label>
+                                <input type="file" name="avatar" id="avatar" class="form-control @error('avatar') is-invalid @enderror" accept="image/*">
+                                @error('avatar')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @else
+                                    <div class="form-text">Upload an image to represent this solicitor. It will be resized to a compact JPEG.</div>
+                                @enderror
+                            </div>
+                        </div>
+
                         <div class="p-3 rounded" id="activation-block">
                             <!-- Activation toggle with color feedback mirroring the clients section. -->
                             <label class="form-label d-block">Activated *</label>

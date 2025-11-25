@@ -28,6 +28,7 @@ class User extends Authenticatable
         'address2',
         'headline',
         'notes',
+        'avatar_path',
     ];
 
     /**

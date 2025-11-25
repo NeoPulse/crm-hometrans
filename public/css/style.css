@@ -59,3 +59,22 @@ body {
 .task-row .text-truncate {
     max-width: 320px;
 }
+
+/* Keep the participant strip on a single line while allowing horizontal scroll on small screens. */
+.team-strip {
+    white-space: nowrap;
+}
+
+/* Anchor the saving indicator inside task rows without shifting layout. */
+.task-row .saving-indicator {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Reveal the saving indicator when updates are in progress. */
+.task-row.saving .saving-indicator {
+    opacity: 1;
+}
