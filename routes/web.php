@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CaseManagerController;
 use App\Http\Controllers\CaseStageController;
+use App\Http\Controllers\CaseChatController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LegalController;
@@ -55,6 +56,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/stages/{stage}/tasks', [CaseStageController::class, 'storeTask'])->name('cases.tasks.store');
     Route::put('/tasks/{task}', [CaseStageController::class, 'updateTask'])->name('cases.tasks.update');
     Route::delete('/tasks/{task}', [CaseStageController::class, 'destroyTask'])->name('cases.tasks.destroy');
+
+    // Case chat routes for viewing, posting, and managing chat messages.
+    Route::get('/case/{caseFile}/chat', [CaseChatController::class, 'index'])->name('cases.chat.index');
+    Route::get('/case/{caseFile}/chat/unread-count', [CaseChatController::class, 'unreadCount'])->name('cases.chat.unread');
+    Route::post('/case/{caseFile}/chat', [CaseChatController::class, 'store'])->name('cases.chat.store');
+    Route::delete('/case/{caseFile}/chat/{chatMessage}', [CaseChatController::class, 'destroy'])->name('cases.chat.destroy');
+    Route::get('/case/{caseFile}/chat/{chatMessage}/download', [CaseChatController::class, 'download'])->name('cases.chat.download');
 
     // Client management endpoints for administrators.
     Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
