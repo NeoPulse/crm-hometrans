@@ -9,7 +9,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 use Symfony\Component\HttpFoundation\Response;
 
 class LegalController extends Controller
@@ -236,6 +239,7 @@ class LegalController extends Controller
             'address2' => ['nullable', 'string'],
             'headline' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
+            'avatar' => ['nullable', 'image', 'max:5120'],
         ]);
 
         // Update the user core fields and mirror the person name into the name column.
@@ -250,6 +254,30 @@ class LegalController extends Controller
             'name' => $validated['person'],
         ]);
         $legal->save();
+
+        // Process an uploaded avatar and convert it into a compact JPEG stored publicly.
+        if ($request->hasFile('avatar')) {
+            // Use Intervention Image with the GD driver to resize the avatar consistently.
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($request->file('avatar'));
+
+            // Crop to a 400x400 square and encode as JPEG to balance quality and size.
+            $image->cover(400, 400);
+            $imageStream = (string) $image->toJpeg(85);
+
+            // Persist the processed file to the public storage disk with a predictable path.
+            $filename = 'avatars/legal-' . $legal->id . '.jpg';
+            Storage::disk('public')->put($filename, $imageStream);
+
+            // Remove any older avatar stored for this user to avoid orphaned files.
+            if ($legal->avatar_path && $legal->avatar_path !== 'storage/' . $filename) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $legal->avatar_path));
+            }
+
+            // Persist the new avatar path to the user record for display.
+            $legal->avatar_path = 'storage/' . $filename;
+            $legal->save();
+        }
 
         // Upsert the legal profile with the provided solicitor details.
         LegalProfile::updateOrCreate(

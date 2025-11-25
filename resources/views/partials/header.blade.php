@@ -9,6 +9,7 @@
     $isAdmin = $user && $user->role === 'admin';
     $isLegal = $user && $user->role === 'legal';
     $casesRoute = $user && $user->role === 'legal' ? route('casemanager.legal') : route('casemanager.index');
+    $brandTarget = $isAdmin ? route('dashboard') : ($isLegal ? $casesRoute : null);
 
     // Build a role-aware navigation definition to keep visibility rules concise.
     $navLinks = [];
@@ -38,7 +39,12 @@
         <!-- Brand with primary navigation links and exit control. -->
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center">
-                <div class="fw-bold fs-5 text-primary">{{ config('app.name', 'HomeTrans CRM') }}</div>
+                {{-- Clickable brand for staff roles while keeping the client view static. --}}
+                @if($brandTarget)
+                    <a href="{{ $brandTarget }}" class="text-decoration-none fw-bold fs-5 text-primary">{{ config('app.name', 'HomeTrans CRM') }}</a>
+                @else
+                    <div class="fw-bold fs-5 text-primary">{{ config('app.name', 'HomeTrans CRM') }}</div>
+                @endif
             </div>
             <nav aria-label="Primary navigation">
                 <!-- Render the navigation items appropriate for the current user role. -->

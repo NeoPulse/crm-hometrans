@@ -2,18 +2,27 @@
 
 @section('header')
     <!-- Case-specific header replacing the default navigation for the case area. -->
+    @php
+        $currentUser = auth()->user();
+        $isLegal = $currentUser && $currentUser->role === 'legal';
+        $brandTarget = $isAdmin ? route('dashboard') : ($isLegal ? route('casemanager.legal') : null);
+    @endphp
     <div class="bg-white border-bottom shadow-sm">
         <div class="container py-3">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="fw-bold text-primary fs-5">HomeTrans CRM</div>
-                    <div>
+            <div class="d-flex align-items-center gap-4 flex-nowrap">
+                <div class="d-flex align-items-center gap-3 flex-shrink-0">
+                    {{-- Role-aware brand link that keeps the client view static. --}}
+                    @if($brandTarget)
+                        <a href="{{ $brandTarget }}" class="text-decoration-none fw-bold text-primary fs-5">HomeTrans CRM</a>
+                    @else
+                        <div class="fw-bold text-primary fs-5">HomeTrans CRM</div>
+                    @endif
+                    <div class="text-nowrap">
                         <div class="text-uppercase text-muted small">Postal code</div>
-                        <h1 class="h5 mb-1">Case {{ $case->postal_code }}</h1>
-                        <p class="mb-0 text-muted">Deadline {{ optional($case->deadline)->format('d/M') ?? 'Not set' }}</p>
+                        <h1 class="h5 mb-0">Case {{ $case->postal_code }}</h1>
                     </div>
                 </div>
-                <div class="d-flex flex-wrap align-items-center justify-content-end gap-4 flex-grow-1">
+                <div class="d-flex align-items-center gap-3 flex-nowrap overflow-auto team-strip">
                     @foreach ($participants as $participant)
                         @php
                             $user = $participant['user'];
@@ -38,12 +47,8 @@
                             <img src="{{ $avatar }}" alt="Avatar" class="rounded-circle avatar-50">
                         </div>
                     @endforeach
-                    <div class="text-end">
-                        <div class="text-uppercase text-muted small">Key dates</div>
-                        <div class="fw-semibold">Deadline: {{ optional($case->deadline)->format('d M Y') ?? 'Not set' }}</div>
-                    </div>
                 </div>
-                <div class="ms-auto">
+                <div class="ms-auto flex-shrink-0">
                     <form method="POST" action="{{ route('logout') }}" class="mb-0">
                         @csrf
                         <button type="submit" class="btn btn-outline-danger btn-sm">Exit</button>
@@ -112,6 +117,18 @@
             const div = document.createElement('div');
             div.textContent = value ?? '';
             return div.innerHTML;
+        };
+
+        // Toggle a subtle spinner on rows while background saves are running.
+        const toggleSaving = (rowElement, isSaving) => {
+            if (!rowElement) {
+                return;
+            }
+            if (isSaving) {
+                rowElement.classList.add('saving');
+            } else {
+                rowElement.classList.remove('saving');
+            }
         };
 
         // Helper to display toast-like feedback after saving.
@@ -274,7 +291,7 @@
                 const deadlineClass = task.overdue ? 'bg-danger-subtle text-danger' : 'bg-light';
 
                 return `
-                    <div class="d-flex align-items-center gap-3 border-bottom pb-3 mb-3 task-row">
+                    <div class="d-flex align-items-center gap-3 border-bottom pb-3 mb-3 task-row position-relative">
                         <div class="fw-semibold text-muted" style="min-width: 24px;">${index + 1}.</div>
                         <div class="flex-grow-1">
                             <div class="fw-semibold text-truncate" title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</div>
@@ -285,6 +302,11 @@
                                 ${isAdmin ? `<input type="date" class="form-control form-control-sm border-0 bg-transparent task-deadline-input" value="${task.deadline ?? ''}" data-task-id="${task.id}">` : task.deadline_display}
                             </div>
                             ${isAdmin ? dropdownStatus(task.id, statusIcon, task.name) : statusIcon}
+                        </div>
+                        <div class="position-absolute saving-indicator">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Saving...</span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -361,6 +383,7 @@
 
         // Update a task field and refresh the UI.
         function updateTask(taskId, payload, rowElement) {
+            toggleSaving(rowElement, true);
             fetch(`{{ url('/tasks') }}/${taskId}`, {
                 method: 'PUT',
                 headers: {
@@ -369,7 +392,10 @@
                     'X-CSRF-TOKEN': csrfToken,
                 },
                 body: JSON.stringify(payload)
-            }).then(response => handleResponse(response, rowElement));
+            })
+                .then(response => handleResponse(response, rowElement))
+                .catch(() => alert('Unexpected server response.'))
+                .finally(() => toggleSaving(rowElement, false));
         }
 
         // Delete a task and refresh state.
@@ -401,7 +427,7 @@
 
         // Handle API responses, update state, and optionally flash rows.
         function handleResponse(response, rowElement = null) {
-            response.json().then(data => {
+            return response.json().then(data => {
                 if (!response.ok) {
                     alert(data.message || 'An error occurred.');
                     return;
