@@ -14,13 +14,24 @@
         /* Chat panel that slides over the current page without reloads. */
         .case-chat-panel {
             position: fixed;
-            bottom: 90px;
+            bottom: 20px;
             right: 20px;
-            width: 420px;
-            max-width: calc(100vw - 30px);
-            max-height: calc(100vh - 120px);
-            z-index: 1070;
-            display: none;
+            width: 300px;
+            height: 1000px;
+            max-width: 100vw;
+            max-height: 100vh;
+            z-index: 1080;
+            transform: translateY(110%);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        /* Visible state that lets the chat modal glide into view. */
+        .case-chat-panel.is-open {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
         }
 
         /* Full-screen presentation on small screens. */
@@ -32,7 +43,8 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                max-height: none;
+                max-width: 100%;
+                max-height: 100%;
             }
         }
 
@@ -174,7 +186,7 @@
         <span class="badge bg-light text-primary ms-2" id="chat-unread-count">{{ $chatUnreadCount }}</span>
     </button>
 
-    <div id="case-chat-panel" class="case-chat-panel">
+    <div id="case-chat-panel" class="case-chat-panel" aria-hidden="true">
         <div class="card h-100 shadow-lg">
             <div class="card-header d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
@@ -665,7 +677,9 @@
         // Open the chat panel and start live polling.
         function openChat() {
             chatOpen = true;
-            chatPanel.style.display = 'block';
+            chatPanel.classList.add('is-open');
+            chatPanel.setAttribute('aria-hidden', 'false');
+            chatToggle.setAttribute('aria-expanded', 'true');
             fetchChat(!chatViewLogged);
             chatViewLogged = true;
 
@@ -680,7 +694,9 @@
         // Close the chat panel and pause message polling.
         function closeChat() {
             chatOpen = false;
-            chatPanel.style.display = 'none';
+            chatPanel.classList.remove('is-open');
+            chatPanel.setAttribute('aria-hidden', 'true');
+            chatToggle.setAttribute('aria-expanded', 'false');
             chatNewFlag.classList.add('d-none');
             if (chatPoll) {
                 clearInterval(chatPoll);
