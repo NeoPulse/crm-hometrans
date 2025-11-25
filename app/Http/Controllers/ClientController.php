@@ -127,12 +127,12 @@ class ClientController extends Controller
         }
         $password = Str::random(16);
 
-        // Persist the user with default active status and client role.
+        // Persist the user with an inactive flag so administrators must confirm activation manually.
         $user = User::create([
             'name' => 'New client',
             'email' => $email,
             'role' => 'client',
-            'is_active' => true,
+            'is_active' => false,
             'password' => Hash::make($password),
         ]);
 
@@ -228,7 +228,7 @@ class ClientController extends Controller
             abort(403, 'Only administrators can update clients.');
         }
 
-        // Validate incoming payload with required email and optional password.
+        // Validate incoming payload with required email while keeping credentials immutable for clients.
         $validated = $request->validate([
             'is_active' => ['required', 'in:0,1'],
             'first_name' => ['nullable', 'string'],
@@ -237,10 +237,8 @@ class ClientController extends Controller
             'phone' => ['nullable', 'string'],
             'address1' => ['nullable', 'string'],
             'address2' => ['nullable', 'string'],
-            'password' => ['nullable', 'string', 'min:8'],
             'headline' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
-            'letter' => ['nullable', 'string'],
         ]);
 
         // Update the user record with core fields and optional password replacement.
@@ -255,10 +253,6 @@ class ClientController extends Controller
             'name' => trim(($validated['first_name'] ?? '') . ' ' . ($validated['last_name'] ?? '')) ?: $client->name,
         ]);
 
-        if (! empty($validated['password'])) {
-            $client->password = Hash::make($validated['password']);
-        }
-
         $client->save();
 
         // Upsert the client profile with supplied fields.
@@ -267,7 +261,6 @@ class ClientController extends Controller
             [
                 'first_name' => $validated['first_name'] ?? null,
                 'last_name' => $validated['last_name'] ?? null,
-                'letter' => $validated['letter'] ?? null,
             ]
         );
 
@@ -296,6 +289,18 @@ class ClientController extends Controller
         // Restrict deletion to administrators and confirm client role.
         if ($request->user()->role !== 'admin' || $client->role !== 'client') {
             abort(403, 'Only administrators can delete clients.');
+        }
+
+        // Block deletion when the client participates in any case to preserve case integrity.
+        $caseCount = CaseFile::query()
+            ->where('sell_client_id', $client->id)
+            ->orWhere('buy_client_id', $client->id)
+            ->count();
+
+        if ($caseCount > 0) {
+            return redirect()
+                ->route('clients.edit', $client)
+                ->withErrors('Client cannot be deleted while assigned to existing cases.');
         }
 
         // Remove the client and associated records.
