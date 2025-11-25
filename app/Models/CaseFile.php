@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Stage;
+use App\Models\ChatMessage;
 
 class CaseFile extends Model
 {
@@ -45,6 +46,14 @@ class CaseFile extends Model
     public function stages()
     {
         return $this->hasMany(Stage::class, 'case_id')->orderBy('id');
+    }
+
+    /**
+     * Relationship: chat messages attached to this case file.
+     */
+    public function chatMessages()
+    {
+        return $this->hasMany(ChatMessage::class, 'case_id')->orderBy('id');
     }
 
     /**

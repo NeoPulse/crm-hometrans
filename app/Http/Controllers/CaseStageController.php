@@ -33,6 +33,26 @@ class CaseStageController extends Controller
         // Prepare stage payloads for the Blade template rendering.
         $stagePayloads = $stages->map(fn (Stage $stage) => $this->formatStage($stage, $viewer))->values();
 
+        // Count unread chat messages for the floating chat toggle badge.
+        $chatUnreadCount = Attention::where('attentions.user_id', $viewer->id)
+            ->where('attentions.type', 'chat')
+            ->where('attentions.target_type', 'chat_message')
+            ->whereIn('attentions.target_id', function ($query) use ($caseFile) {
+                $query->select('id')->from('chat_messages')->where('case_id', $caseFile->id);
+            })
+            ->count();
+
+        // Decide whether the viewer is allowed to post into the chat thread.
+        $canPostChat = $viewer->role === 'admin' || in_array($viewer->id, [$caseFile->buy_legal_id, $caseFile->sell_legal_id], true);
+
+        // Precompute the side label for legal participants to align outgoing messages.
+        $legalSide = null;
+        if ($viewer->id === $caseFile->buy_legal_id) {
+            $legalSide = 'buy';
+        } elseif ($viewer->id === $caseFile->sell_legal_id) {
+            $legalSide = 'sell';
+        }
+
         // Remove "new" attention markers once the viewer has opened the page.
         $this->clearNewMarkers($viewer, $stages);
 
@@ -52,6 +72,9 @@ class CaseStageController extends Controller
             'participants' => $this->buildParticipants($caseFile),
             'stages' => $stagePayloads,
             'isAdmin' => $viewer->role === 'admin',
+            'chatUnreadCount' => $chatUnreadCount,
+            'canPostChat' => $canPostChat,
+            'legalSide' => $legalSide,
         ]);
     }
 
