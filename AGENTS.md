@@ -18,6 +18,7 @@
 - intervention/image (для аватарок, если нужно)
 - spatie/laravel-query-builder (для таблиц, если нужно)
 - livewire/livewire (для чата, если нужно)
+- intervention/image (для работы с изображениями, если нужно)
 - chart.js (для диаграмм)
 - не используй tailwindcss.
 
