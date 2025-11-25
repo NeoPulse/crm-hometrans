@@ -142,6 +142,13 @@ class CaseStageController extends Controller
         // Ensure only administrators can remove a stage.
         $this->assertAdmin($request->user());
 
+        // Prevent removal when tasks are still linked to the stage.
+        if ($stage->tasks()->exists()) {
+            return response()->json([
+                'message' => 'You cannot delete a stage while it still contains tasks.',
+            ], 422);
+        }
+
         // Clean up related attention records before deletion.
         DB::transaction(function () use ($stage) {
             $taskIds = $stage->tasks()->pluck('id');

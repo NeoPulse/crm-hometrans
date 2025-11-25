@@ -17,8 +17,12 @@
 </head>
 <body class="bg-light">
 <div class="d-flex flex-column min-vh-100">
-    <!-- Shared header placed above all pages. -->
-    @include('partials.header')
+    <!-- Shared header placed above all pages with per-page override support. -->
+    @hasSection('header')
+        @yield('header')
+    @else
+        @include('partials.header')
+    @endif
 
     <!-- Page content container. -->
     <main class="container py-4 flex-grow-1">
