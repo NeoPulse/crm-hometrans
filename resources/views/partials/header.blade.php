@@ -22,7 +22,9 @@
                     @endif
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('casemanager.*') ? 'active' : '' }}" href="{{ $isAuthenticated ? $casesRoute : '#' }}">Cases</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('clients.*') ? 'active' : '' }}" href="{{ $isAdmin ? route('clients.index') : '#' }}">Clients</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Legals</a></li>
+                    @if($isAdmin)
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('legals.*') ? 'active' : '' }}" href="{{ route('legals.index') }}">Legals</a></li>
+                    @endif
                     <li class="nav-item"><a class="nav-link" href="#">Profile</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Logs</a></li>
                     <li class="nav-item">

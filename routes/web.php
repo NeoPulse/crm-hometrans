@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CaseManagerController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LegalController;
 use Illuminate\Support\Facades\Route;
 
 // Public route serving the login form for guests.
@@ -46,4 +47,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
     Route::post('/clients/{client}/attention/{type}', [ClientController::class, 'toggleAttention'])->name('clients.attention');
+
+    // Legal management endpoints for administrators.
+    Route::get('/legals', [LegalController::class, 'index'])->name('legals.index');
+    Route::post('/legals', [LegalController::class, 'store'])->name('legals.store');
+    Route::get('/legals/{legal}/edit', [LegalController::class, 'edit'])->name('legals.edit');
+    Route::post('/legals/{legal}', [LegalController::class, 'update'])->name('legals.update');
+    Route::post('/legals/{legal}/password', [LegalController::class, 'generatePassword'])->name('legals.password');
 });
