@@ -41,6 +41,11 @@
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
 
+    <!-- Warning to prevent deletion when the client participates in cases. -->
+    @if (($relatedCases->total() ?? $relatedCases->count()) > 0)
+        <div class="alert alert-warning">Client cannot be removed while assigned to cases.</div>
+    @endif
+
     <!-- Client form split into two columns for activation, contact, and notes. -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
@@ -89,11 +94,7 @@
                         </div>
                     </div>
                     <div class="col-12 col-lg-6">
-                        <!-- Password setter updates credentials only when populated. -->
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Set pwd</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Leave blank to keep existing">
-                        </div>
+                        <!-- Secondary details for the client card without credential changes. -->
                         <div class="mb-3">
                             <label for="headline" class="form-label">Headline</label>
                             <input type="text" class="form-control" id="headline" name="headline" value="{{ $client->headline }}">
@@ -102,14 +103,10 @@
                             <label for="notes" class="form-label">Notes</label>
                             <textarea class="form-control" id="notes" name="notes" rows="6">{{ $client->notes }}</textarea>
                         </div>
-                        <div class="mb-3">
-                            <label for="letter" class="form-label">Letter content</label>
-                            <textarea class="form-control" id="letter" name="letter" rows="6">{{ optional($client->clientProfile)->letter }}</textarea>
-                        </div>
                     </div>
                 </div>
-                <div class="d-grid mt-3">
-                    <button type="submit" class="btn btn-primary" id="save-btn">Save</button>
+                <div class="d-flex justify-content-center mt-3">
+                    <button type="submit" class="btn btn-primary px-4" id="save-btn">Save</button>
                 </div>
             </form>
         </div>
