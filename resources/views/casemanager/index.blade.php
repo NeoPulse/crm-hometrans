@@ -64,6 +64,7 @@
                         @php
                             $rowClass = $case->status === 'progress' ? 'table-success' : 'table-secondary';
                             $attentionTypes = ['attention', 'mail', 'doc'];
+                            $deadlineClass = $case->deadline && $case->deadline->isPast() ? 'text-danger fw-bold' : '';
                         @endphp
                         <tr class="{{ $rowClass }} table-row-link" data-href="{{ route('casemanager.edit', $case) }}">
                             <td><a href="{{ route('casemanager.edit', $case) }}" class="text-decoration-none">{{ $case->id }}</a></td>
@@ -79,7 +80,7 @@
                             </td>
                             <td class="text-capitalize">{{ $case->status }}</td>
                             <td>{{ optional($case->created_at)->format('d/m/y') }}</td>
-                            <td>{{ optional($case->deadline)->format('d/m/y') ?? '—' }}</td>
+                            <td class="{{ $deadlineClass }}">{{ optional($case->deadline)->format('d/m/y') ?? '—' }}</td>
                             <td class="text-wrap">{{ $case->headline ?? 'No headline available' }}</td>
                         </tr>
                     @empty

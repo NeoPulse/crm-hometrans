@@ -3,6 +3,9 @@
     // Determine whether the user is authenticated and resolve logout routing accordingly.
     $isAuthenticated = auth()->check();
     $logoutRoute = $isAuthenticated ? route('logout') : null;
+    $user = auth()->user();
+    $isAdmin = $user && $user->role === 'admin';
+    $casesRoute = $user && $user->role === 'legal' ? route('casemanager.legal') : route('casemanager.index');
 @endphp
 
 <div class="bg-white border-bottom shadow-sm">
@@ -14,7 +17,10 @@
             </div>
             <nav aria-label="Primary navigation">
                 <ul class="nav nav-pills align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="{{ $isAuthenticated ? route('home') : '#' }}">Cases</a></li>
+                    @if($isAdmin)
+                        <li class="nav-item"><a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Dashboard</a></li>
+                    @endif
+                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('casemanager.*') ? 'active' : '' }}" href="{{ $isAuthenticated ? $casesRoute : '#' }}">Cases</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Users</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Legals</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Profile</a></li>
