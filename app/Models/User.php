@@ -62,6 +62,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Relationship: attach a legal profile for solicitor metadata.
+     */
+    public function legalProfile()
+    {
+        return $this->hasOne(LegalProfile::class);
+    }
+
+    /**
      * Relationship: pull all attentions related to this user.
      */
     public function attentions()
@@ -86,10 +94,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Relationship: fetch cases where the user acts as the selling solicitor.
+     */
+    public function sellLegalCases()
+    {
+        return $this->hasMany(CaseFile::class, 'sell_legal_id');
+    }
+
+    /**
+     * Relationship: fetch cases where the user acts as the buying solicitor.
+     */
+    public function buyLegalCases()
+    {
+        return $this->hasMany(CaseFile::class, 'buy_legal_id');
+    }
+
+    /**
      * Helper attribute that returns the preferred display name for the user.
      */
     public function getDisplayNameAttribute(): string
     {
+        if ($this->role === 'legal' && $this->legalProfile && $this->legalProfile->person) {
+            return $this->legalProfile->person;
+        }
+
         if ($this->clientProfile && ($this->clientProfile->first_name || $this->clientProfile->last_name)) {
             return trim(($this->clientProfile->first_name ?? '') . ' ' . ($this->clientProfile->last_name ?? ''));
         }
