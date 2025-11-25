@@ -1,18 +1,19 @@
 @extends('layouts.app')
 
-@section('content')
-    <!-- Case overview header with participants and key dates. -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
+@section('header')
+    <!-- Case-specific header replacing the default navigation for the case area. -->
+    <div class="bg-white border-bottom shadow-sm">
+        <div class="container py-3">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div class="d-flex align-items-center gap-3">
                     <div class="fw-bold text-primary fs-5">HomeTrans CRM</div>
                     <div>
+                        <div class="text-uppercase text-muted small">Postal code</div>
                         <h1 class="h5 mb-1">Case {{ $case->postal_code }}</h1>
                         <p class="mb-0 text-muted">Deadline {{ optional($case->deadline)->format('d/M') ?? 'Not set' }}</p>
                     </div>
                 </div>
-                <div class="d-flex flex-wrap gap-4">
+                <div class="d-flex flex-wrap align-items-center justify-content-end gap-4 flex-grow-1">
                     @foreach ($participants as $participant)
                         @php
                             $user = $participant['user'];
@@ -37,19 +38,29 @@
                             <img src="{{ $avatar }}" alt="Avatar" class="rounded-circle avatar-50">
                         </div>
                     @endforeach
+                    <div class="text-end">
+                        <div class="text-uppercase text-muted small">Key dates</div>
+                        <div class="fw-semibold">Deadline: {{ optional($case->deadline)->format('d M Y') ?? 'Not set' }}</div>
+                    </div>
+                </div>
+                <div class="ms-auto">
+                    <form method="POST" action="{{ route('logout') }}" class="mb-0">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Exit</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+@endsection
+
+@section('content')
 
     <div class="row g-4">
         <div class="col-lg-4">
             <!-- Stage list column showing all stages with progress. -->
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h2 class="h5 mb-0">Stages:</h2>
-                @if($isAdmin)
-                    <div class="text-muted small">Admin controls enabled</div>
-                @endif
             </div>
             <div id="stage-list" class="d-flex flex-column gap-2"></div>
             <div id="no-stages-alert" class="alert alert-info d-none">No stages have been added yet.</div>
@@ -58,7 +69,7 @@
                 <form id="stage-add-form" class="d-flex gap-2 mt-3" novalidate>
                     @csrf
                     <input type="text" name="name" class="form-control" placeholder="Stage name" required>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-success">Add</button>
                 </form>
             @endif
         </div>
@@ -134,14 +145,14 @@
                     <div class="card-body py-2">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="fw-semibold">${index + 1}. ${escapeHtml(stage.name)}</div>
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center gap-1">
                                 ${stage.is_new ? '<span class="badge bg-danger">NEW</span>' : ''}
                                 ${isAdmin ? '<button type="button" class="btn btn-sm btn-link text-secondary stage-edit" title="Rename stage"><i class="bi bi-pencil-square"></i></button>' : ''}
                                 ${isAdmin ? '<button type="button" class="btn btn-sm btn-link text-danger stage-delete" title="Delete stage"><i class="bi bi-trash"></i></button>' : ''}
                             </div>
                         </div>
-                        <div class="progress mt-2" role="progressbar" aria-label="Stage progress">
-                            <div class="progress-bar" style="width: ${stage.progress}%">${stage.progress}%</div>
+                        <div class="progress mt-2" role="progressbar" aria-label="Stage progress" style="height: 14px;">
+                            <div class="progress-bar bg-success" style="width: ${stage.progress}%">${stage.progress}%</div>
                         </div>
                     </div>
                 `;
@@ -159,7 +170,7 @@
                 }));
                 card.querySelectorAll('.stage-delete').forEach(btn => btn.addEventListener('click', (event) => {
                     event.stopPropagation();
-                    confirmStageDeletion(stage.id);
+                    confirmStageDeletion(stage);
                 }));
 
                 stageListEl.appendChild(card);
@@ -181,14 +192,18 @@
             const buyerTasks = stage.tasks.filter(task => task.side === 'buyer');
 
             tasksContent.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h3 class="h6 mb-0">Seller side</h3>
-                    ${isAdmin ? `<a href="#" class="link-primary text-decoration-none add-task" data-side="seller" data-stage="${stage.id}">add task</a>` : ''}
+                <div class="d-flex align-items-center mb-2 position-relative">
+                    <div class="flex-grow-1 text-center">
+                        <h3 class="h6 mb-0">Seller side</h3>
+                    </div>
+                    ${isAdmin ? `<a href="#" class="link-primary text-decoration-none add-task position-absolute end-0 top-50 translate-middle-y" data-side="seller" data-stage="${stage.id}">add task</a>` : ''}
                 </div>
                 ${renderTaskList(sellerTasks)}
-                <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
-                    <h3 class="h6 mb-0">Buyer side</h3>
-                    ${isAdmin ? `<a href="#" class="link-primary text-decoration-none add-task" data-side="buyer" data-stage="${stage.id}">add task</a>` : ''}
+                <div class="d-flex align-items-center mt-4 mb-2 position-relative">
+                    <div class="flex-grow-1 text-center">
+                        <h3 class="h6 mb-0">Buyer side</h3>
+                    </div>
+                    ${isAdmin ? `<a href="#" class="link-primary text-decoration-none add-task position-absolute end-0 top-50 translate-middle-y" data-side="buyer" data-stage="${stage.id}">add task</a>` : ''}
                 </div>
                 ${renderTaskList(buyerTasks)}
             `;
@@ -201,16 +216,11 @@
                 });
             });
 
-            // Bind inline editing for task names and deadlines.
-            document.querySelectorAll('.task-name-input').forEach(input => {
-                input.addEventListener('keydown', (event) => {
-                    if (event.key === 'Enter') {
-                        event.preventDefault();
-                        updateTask(input.dataset.taskId, {name: input.value}, input.closest('.task-row'));
-                    }
-                });
-            });
+            // Bind deadline updates so selected dates are persisted.
             document.querySelectorAll('.task-deadline-input').forEach(input => {
+                input.addEventListener('change', () => {
+                    updateTask(input.dataset.taskId, {deadline: input.value || null}, input.closest('.task-row'));
+                });
                 input.addEventListener('keydown', (event) => {
                     if (event.key === 'Enter') {
                         event.preventDefault();
@@ -219,13 +229,24 @@
                 });
             });
 
-            // Bind status dropdown actions.
+            // Bind status dropdown actions and name edits for administrators.
             document.querySelectorAll('.status-option').forEach(item => {
                 item.addEventListener('click', (event) => {
                     event.preventDefault();
                     const taskId = item.dataset.taskId;
                     const status = item.dataset.status;
                     updateTask(taskId, {status: status}, item.closest('.task-row'));
+                });
+            });
+            document.querySelectorAll('.edit-task-name').forEach(item => {
+                item.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const taskId = item.dataset.taskId;
+                    const existingName = decodeURIComponent(item.dataset.taskName || '');
+                    const newName = prompt('Enter a new task title', existingName);
+                    if (newName) {
+                        updateTask(taskId, {name: newName}, item.closest('.task-row'));
+                    }
                 });
             });
 
@@ -253,17 +274,17 @@
                 const deadlineClass = task.overdue ? 'bg-danger-subtle text-danger' : 'bg-light';
 
                 return `
-                    <div class="d-flex align-items-center gap-3 border rounded p-2 mb-2 task-row">
+                    <div class="d-flex align-items-center gap-3 border-bottom pb-3 mb-3 task-row">
                         <div class="fw-semibold text-muted" style="min-width: 24px;">${index + 1}.</div>
-                        <div class="flex-grow-1 text-truncate">
-                            ${isAdmin ? `<input type="text" class="form-control form-control-sm border-0 bg-transparent px-0 task-name-input" value="${escapeHtml(task.name)}" data-task-id="${task.id}">` : `<span title="${escapeHtml(task.name)}" class="text-truncate d-inline-block" style="max-width: 320px;">${escapeHtml(task.name)}</span>`}
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold text-truncate" title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</div>
                         </div>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 ms-auto justify-content-end text-end">
                             ${task.is_new ? '<span class="badge bg-danger">new</span>' : ''}
                             <div class="badge ${deadlineClass} text-dark p-2 rounded task-deadline">
                                 ${isAdmin ? `<input type="date" class="form-control form-control-sm border-0 bg-transparent task-deadline-input" value="${task.deadline ?? ''}" data-task-id="${task.id}">` : task.deadline_display}
                             </div>
-                            ${isAdmin ? dropdownStatus(task.id, statusIcon) : statusIcon}
+                            ${isAdmin ? dropdownStatus(task.id, statusIcon, task.name) : statusIcon}
                         </div>
                     </div>
                 `;
@@ -271,13 +292,15 @@
         }
 
         // Render a dropdown with status options and delete action for admins.
-        function dropdownStatus(taskId, iconHtml) {
+        function dropdownStatus(taskId, iconHtml, taskName) {
             return `
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-sm btn-outline-success" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         ${iconHtml}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item text-primary edit-task-name" href="#" data-task-id="${taskId}" data-task-name="${encodeURIComponent(taskName ?? '')}">Edit name</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item status-option" href="#" data-task-id="${taskId}" data-status="new">Mark as new</a></li>
                         <li><a class="dropdown-item status-option" href="#" data-task-id="${taskId}" data-status="progress">Mark in progress</a></li>
                         <li><a class="dropdown-item status-option" href="#" data-task-id="${taskId}" data-status="done">Mark as done</a></li>
@@ -306,11 +329,15 @@
         }
 
         // Confirm and execute stage deletion.
-        function confirmStageDeletion(stageId) {
-            if (!confirm('Delete this stage and all tasks?')) {
+        function confirmStageDeletion(stage) {
+            if (stage.tasks && stage.tasks.length) {
+                alert('You cannot delete a stage that still contains tasks. Remove the tasks first.');
                 return;
             }
-            fetch(`{{ url('/stages') }}/${stageId}`, {
+            if (!confirm('Delete this empty stage?')) {
+                return;
+            }
+            fetch(`{{ url('/stages') }}/${stage.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json',
