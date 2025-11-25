@@ -23,8 +23,8 @@
                             $deadlineClass = $case->deadline && $case->deadline->isPast() ? 'text-danger fw-bold' : '';
                         @endphp
                         <tr>
-                            <td>{{ $case->id }}</td>
-                            <td>{{ $case->postal_code }}</td>
+                            <td><a href="{{ route('cases.show', $case) }}" class="text-decoration-none">{{ $case->id }}</a></td>
+                            <td><a href="{{ route('cases.show', $case) }}" class="text-decoration-none">{{ $case->postal_code }}</a></td>
                             <td class="{{ $deadlineClass }}">{{ optional($case->deadline)->format('d/m/y') ?? '—' }}</td>
                         </tr>
                     @empty

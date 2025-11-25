@@ -30,3 +30,32 @@ body {
 .table-row-link {
     cursor: pointer;
 }
+
+/* Stage cards gain a pointer cursor and subtle highlight on hover. */
+.stage-card {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+/* Emphasise the selected stage card with a stronger outline. */
+.stage-card.border-primary {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+}
+
+/* Keep progress bars compact within the stage list. */
+.stage-card .progress {
+    height: 0.6rem;
+}
+
+/* Ensure inline inputs retain alignment without visible borders. */
+.task-name-input,
+.task-deadline-input {
+    min-width: 140px;
+    max-width: 240px;
+    box-shadow: none !important;
+}
+
+/* Prevent overflowing task names by truncating long text. */
+.task-row .text-truncate {
+    max-width: 320px;
+}
