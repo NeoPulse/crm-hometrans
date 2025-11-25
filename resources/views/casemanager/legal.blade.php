@@ -18,10 +18,14 @@
                     </thead>
                     <tbody>
                     @forelse($cases as $case)
+                        @php
+                            // Highlight overdue deadlines in red to match the admin view.
+                            $deadlineClass = $case->deadline && $case->deadline->isPast() ? 'text-danger fw-bold' : '';
+                        @endphp
                         <tr>
                             <td>{{ $case->id }}</td>
                             <td>{{ $case->postal_code }}</td>
-                            <td>{{ optional($case->deadline)->format('d/m/y') ?? '—' }}</td>
+                            <td class="{{ $deadlineClass }}">{{ optional($case->deadline)->format('d/m/y') ?? '—' }}</td>
                         </tr>
                     @empty
                         <tr>
