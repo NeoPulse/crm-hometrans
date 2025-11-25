@@ -7,7 +7,7 @@
             <h1 class="h4 mb-1">Case #{{ $case->id }} {{ $case->postal_code }}</h1>
             <p class="text-muted mb-0">Review and maintain participants, status, and notifications.</p>
         </div>
-        <button class="btn btn-outline-secondary" type="button">Show case</button>
+        <a class="btn btn-outline-secondary" href="{{ route('cases.show', $case) }}">Show case</a>
     </div>
 
     <!-- Status and validation feedback for administrator actions. -->

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CaseManagerController;
+use App\Http\Controllers\CaseStageController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LegalController;
@@ -45,6 +46,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/casemanager/{caseFile}/details', [CaseManagerController::class, 'updateDetails'])->name('casemanager.details');
     Route::post('/casemanager/{caseFile}/attention/{type}', [CaseManagerController::class, 'toggleAttention'])->name('casemanager.attention');
     Route::get('/casemanager/user-search', [CaseManagerController::class, 'searchUsers'])->name('casemanager.usersearch');
+
+    // Case stage workspace with inline stage and task management.
+    Route::get('/case/{caseFile}', [CaseStageController::class, 'show'])->name('cases.show');
+    Route::post('/case/{caseFile}/stages', [CaseStageController::class, 'storeStage'])->name('cases.stages.store');
+    Route::put('/stages/{stage}', [CaseStageController::class, 'updateStage'])->name('cases.stages.update');
+    Route::delete('/stages/{stage}', [CaseStageController::class, 'destroyStage'])->name('cases.stages.destroy');
+    Route::post('/stages/{stage}/tasks', [CaseStageController::class, 'storeTask'])->name('cases.tasks.store');
+    Route::put('/tasks/{task}', [CaseStageController::class, 'updateTask'])->name('cases.tasks.update');
+    Route::delete('/tasks/{task}', [CaseStageController::class, 'destroyTask'])->name('cases.tasks.destroy');
 
     // Client management endpoints for administrators.
     Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');

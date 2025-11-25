@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Stage;
 
 class CaseFile extends Model
 {
@@ -37,6 +38,14 @@ class CaseFile extends Model
     protected $casts = [
         'deadline' => 'date',
     ];
+
+    /**
+     * Relationship: stages that belong to this case file.
+     */
+    public function stages()
+    {
+        return $this->hasMany(Stage::class, 'case_id')->orderBy('id');
+    }
 
     /**
      * Relationship: retrieve all attention flags linked to this case.
