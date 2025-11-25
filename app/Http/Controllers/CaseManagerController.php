@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class CaseManagerController extends Controller
@@ -118,7 +119,15 @@ class CaseManagerController extends Controller
 
         // Validate the incoming postal code ensuring no spaces are present.
         $validated = $request->validate([
-            'postal_code' => ['required', 'string', 'regex:/^\S+$/'],
+            'postal_code' => [
+                'required',
+                'string',
+                'regex:/^\S+$/',
+                Rule::unique('cases', 'postal_code')->where(
+                    // Enforce case-insensitive uniqueness for postal codes across all cases.
+                    fn ($query) => $query->whereRaw('LOWER(postal_code) = ?', [strtolower($request->postal_code ?? '')])
+                ),
+            ],
         ]);
 
         // Generate a unique public link token between 8 and 16 characters.
@@ -163,11 +172,12 @@ class CaseManagerController extends Controller
 
         // Retrieve recent activity logs tied to this case for display.
         $logs = DB::table('activity_logs')
+            ->leftJoin('users', 'activity_logs.user_id', '=', 'users.id')
             ->where('target_type', 'case')
             ->where('target_id', $caseFile->id)
-            ->orderByDesc('created_at')
+            ->orderByDesc('activity_logs.created_at')
             ->limit(50)
-            ->get();
+            ->get(['activity_logs.*', 'users.name as user_name']);
 
         // Render the edit page with current case data and log history.
         return response()->view('casemanager.edit', [
@@ -232,7 +242,15 @@ class CaseManagerController extends Controller
 
         // Validate detail fields with required postal code and status options.
         $validated = $request->validate([
-            'postal_code' => ['required', 'string', 'regex:/^\S+$/'],
+            'postal_code' => [
+                'required',
+                'string',
+                'regex:/^\S+$/',
+                Rule::unique('cases', 'postal_code')->ignore($caseFile->id)->where(
+                    // Ensure updated postal codes stay unique regardless of letter casing.
+                    fn ($query) => $query->whereRaw('LOWER(postal_code) = ?', [strtolower($request->postal_code ?? '')])
+                ),
+            ],
             'property' => ['nullable', 'string'],
             'status' => ['required', 'in:new,progress,completed,cancelled'],
             'deadline' => ['nullable', 'date'],

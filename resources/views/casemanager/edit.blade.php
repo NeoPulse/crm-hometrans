@@ -30,30 +30,58 @@
                             <h3 class="h6 text-uppercase text-muted">Sell-side</h3>
                         </div>
                         <div class="mb-3 position-relative">
-                            <label for="sell_legal_id" class="form-label">Sell legal</label>
-                            <input type="text" class="form-control user-search" data-role="legal" data-target="sell-legal-results" id="sell_legal_id" name="sell_legal_id" value="{{ $case->sell_legal_id }}" placeholder="Type ID or name">
-                            <div class="form-text">{{ $case->sellLegal ? $case->sellLegal->id . ' - ' . $case->sellLegal->name : 'No sell legal assigned' }}</div>
+                            <label for="sell_legal_display" class="form-label">Sell legal</label>
+                            <input type="hidden" id="sell_legal_id" name="sell_legal_id" value="{{ $case->sell_legal_id }}">
+                            <input type="text" class="form-control user-search" data-role="legal" data-target="sell-legal-results" data-hidden="sell_legal_id" id="sell_legal_display" value="{{ $case->sellLegal?->name }}" placeholder="Type ID or name">
+                            <div class="form-text">
+                                @if($case->sellLegal)
+                                    <a href="/users/{{ $case->sellLegal->id }}/edit" class="text-decoration-none">{{ $case->sellLegal->name }}</a>
+                                @else
+                                    No sell legal assigned
+                                @endif
+                            </div>
                             <div class="list-group position-absolute w-100 z-1 shadow-sm" id="sell-legal-results"></div>
                         </div>
                         <div class="mb-4 position-relative">
-                            <label for="sell_client_id" class="form-label">Sell client</label>
-                            <input type="text" class="form-control user-search" data-role="client" data-target="sell-client-results" id="sell_client_id" name="sell_client_id" value="{{ $case->sell_client_id }}" placeholder="Type ID or name">
-                            <div class="form-text">{{ $case->sellClient ? $case->sellClient->id . ' - ' . $case->sellClient->name : 'No sell client assigned' }}</div>
+                            <label for="sell_client_display" class="form-label">Sell client</label>
+                            <input type="hidden" id="sell_client_id" name="sell_client_id" value="{{ $case->sell_client_id }}">
+                            <input type="text" class="form-control user-search" data-role="client" data-target="sell-client-results" data-hidden="sell_client_id" id="sell_client_display" value="{{ $case->sellClient?->name }}" placeholder="Type ID or name">
+                            <div class="form-text">
+                                @if($case->sellClient)
+                                    <a href="/users/{{ $case->sellClient->id }}/edit" class="text-decoration-none">{{ $case->sellClient->name }}</a>
+                                @else
+                                    No sell client assigned
+                                @endif
+                            </div>
                             <div class="list-group position-absolute w-100 z-1 shadow-sm" id="sell-client-results"></div>
                         </div>
                         <div class="mb-3">
                             <h3 class="h6 text-uppercase text-muted">Buy-side</h3>
                         </div>
                         <div class="mb-3 position-relative">
-                            <label for="buy_legal_id" class="form-label">Buy legal</label>
-                            <input type="text" class="form-control user-search" data-role="legal" data-target="buy-legal-results" id="buy_legal_id" name="buy_legal_id" value="{{ $case->buy_legal_id }}" placeholder="Type ID or name">
-                            <div class="form-text">{{ $case->buyLegal ? $case->buyLegal->id . ' - ' . $case->buyLegal->name : 'No buy legal assigned' }}</div>
+                            <label for="buy_legal_display" class="form-label">Buy legal</label>
+                            <input type="hidden" id="buy_legal_id" name="buy_legal_id" value="{{ $case->buy_legal_id }}">
+                            <input type="text" class="form-control user-search" data-role="legal" data-target="buy-legal-results" data-hidden="buy_legal_id" id="buy_legal_display" value="{{ $case->buyLegal?->name }}" placeholder="Type ID or name">
+                            <div class="form-text">
+                                @if($case->buyLegal)
+                                    <a href="/users/{{ $case->buyLegal->id }}/edit" class="text-decoration-none">{{ $case->buyLegal->name }}</a>
+                                @else
+                                    No buy legal assigned
+                                @endif
+                            </div>
                             <div class="list-group position-absolute w-100 z-1 shadow-sm" id="buy-legal-results"></div>
                         </div>
                         <div class="mb-4 position-relative">
-                            <label for="buy_client_id" class="form-label">Buy client</label>
-                            <input type="text" class="form-control user-search" data-role="client" data-target="buy-client-results" id="buy_client_id" name="buy_client_id" value="{{ $case->buy_client_id }}" placeholder="Type ID or name">
-                            <div class="form-text">{{ $case->buyClient ? $case->buyClient->id . ' - ' . $case->buyClient->name : 'No buy client assigned' }}</div>
+                            <label for="buy_client_display" class="form-label">Buy client</label>
+                            <input type="hidden" id="buy_client_id" name="buy_client_id" value="{{ $case->buy_client_id }}">
+                            <input type="text" class="form-control user-search" data-role="client" data-target="buy-client-results" data-hidden="buy_client_id" id="buy_client_display" value="{{ $case->buyClient?->name }}" placeholder="Type ID or name">
+                            <div class="form-text">
+                                @if($case->buyClient)
+                                    <a href="/users/{{ $case->buyClient->id }}/edit" class="text-decoration-none">{{ $case->buyClient->name }}</a>
+                                @else
+                                    No buy client assigned
+                                @endif
+                            </div>
                             <div class="list-group position-absolute w-100 z-1 shadow-sm" id="buy-client-results"></div>
                         </div>
                         <div class="d-grid">
@@ -72,7 +100,7 @@
                         <p class="mb-0 text-muted">Toggle alerts for this case.</p>
                     </div>
                     <div class="d-flex gap-3">
-                        @foreach(['attention' => 'exclamation-circle', 'mail' => 'envelope', 'doc' => 'file-earmark-text', 'call' => 'telephone'] as $type => $icon)
+                        @foreach(['attention' => 'exclamation-circle', 'mail' => 'envelope', 'doc' => 'file-earmark-text'] as $type => $icon)
                             @php $active = $case->attentions->firstWhere('type', $type); @endphp
                             <form method="POST" action="{{ route('casemanager.attention', [$case, $type]) }}">
                                 @csrf
@@ -156,7 +184,13 @@
                         @forelse($logs as $log)
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($log->created_at)->format('d/m/y H:i') }}</td>
-                                <td>{{ $log->user_id ?? 'System' }}</td>
+                                <td>
+                                    @if($log->user_id)
+                                        <a href="/users/{{ $log->user_id }}/edit" class="text-decoration-none">{{ $log->user_name ?? 'User' }}</a>
+                                    @else
+                                        System
+                                    @endif
+                                </td>
                                 <td>{{ $log->action }}</td>
                                 <td>{{ $log->details ?? 'No details provided' }}</td>
                             </tr>
@@ -207,8 +241,13 @@
         document.querySelectorAll('.user-search').forEach((input) => {
             const resultsId = input.dataset.target;
             const resultsContainer = document.getElementById(resultsId);
+            const hiddenId = input.dataset.hidden;
+            const hiddenInput = document.getElementById(hiddenId);
 
             input.addEventListener('input', () => {
+                if (hiddenInput) {
+                    hiddenInput.value = '';
+                }
                 const query = input.value.trim();
                 if (!query) {
                     resultsContainer.innerHTML = '';
@@ -223,9 +262,12 @@
                             const option = document.createElement('button');
                             option.type = 'button';
                             option.className = 'list-group-item list-group-item-action';
-                            option.textContent = `${user.id} - ${user.name} (${user.role})`;
+                            option.textContent = `${user.name} (#${user.id}) - ${user.role}`;
                             option.addEventListener('click', () => {
-                                input.value = user.id;
+                                input.value = user.name;
+                                if (hiddenInput) {
+                                    hiddenInput.value = user.id;
+                                }
                                 resultsContainer.innerHTML = '';
                             });
                             resultsContainer.appendChild(option);
@@ -236,5 +278,26 @@
                     });
             });
         });
+
+        // Apply Bootstrap background helpers on the status selector to reflect the chosen value.
+        const statusSelect = document.getElementById('status');
+        const statusClasses = {
+            new: 'text-bg-secondary',
+            progress: 'text-bg-info',
+            completed: 'text-bg-success',
+            cancelled: 'text-bg-danger',
+        };
+
+        const updateStatusColor = () => {
+            if (!statusSelect) return;
+            statusSelect.className = 'form-select';
+            const chosenClass = statusClasses[statusSelect.value];
+            if (chosenClass) {
+                statusSelect.classList.add(chosenClass);
+            }
+        };
+
+        updateStatusColor();
+        statusSelect?.addEventListener('change', updateStatusColor);
     </script>
 @endpush
