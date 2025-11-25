@@ -58,10 +58,11 @@ class DashboardController extends Controller
 
         // Calculate case creations per month for the current year to populate the annual chart.
         $yearStart = Carbon::now()->startOfYear();
+        $monthExpression = $this->monthGroupExpression();
         $caseCreationRows = DB::table('cases')
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key, COUNT(*) as total")
+            ->selectRaw("{$monthExpression} as month_key, COUNT(*) as total")
             ->whereDate('created_at', '>=', $yearStart)
-            ->groupByRaw("DATE_FORMAT(created_at, '%Y-%m')")
+            ->groupByRaw($monthExpression)
             ->orderBy('month_key')
             ->get()
             ->keyBy('month_key');
@@ -92,5 +93,23 @@ class DashboardController extends Controller
             'caseValues' => $caseValues,
             'progressCases' => $progressCases,
         ]);
+    }
+
+    /**
+     * Resolve the database-specific expression for grouping by month.
+     */
+    private function monthGroupExpression(): string
+    {
+        $driver = DB::getDriverName();
+
+        if ($driver === 'sqlite') {
+            return "strftime('%Y-%m', created_at)";
+        }
+
+        if ($driver === 'pgsql') {
+            return "to_char(created_at, 'YYYY-MM')";
+        }
+
+        return "DATE_FORMAT(created_at, '%Y-%m')";
     }
 }
