@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CaseManagerController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 // Public route serving the login form for guests.
@@ -18,11 +19,14 @@ Route::middleware('auth')->group(function () {
             return redirect()->route('casemanager.legal');
         }
 
-        // Admins default to the case manager overview.
-        return redirect()->route('casemanager.index');
+        // Admins default to the dashboard overview.
+        return redirect()->route('dashboard');
     })->name('home');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Administrative dashboard entry point.
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Case manager endpoints for admin and legal users.
     Route::get('/casemanager', [CaseManagerController::class, 'index'])->name('casemanager.index');
