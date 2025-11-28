@@ -234,6 +234,10 @@ class CaseChatController extends Controller
             $caseFile->buy_legal_id,
         ]);
 
+        // Include all administrators so they can stay informed about solicitor activity.
+        $adminIds = User::where('role', 'admin')->pluck('id')->toArray();
+        $recipientIds = array_unique(array_merge($recipientIds, $adminIds));
+
         foreach ($recipientIds as $userId) {
             if ($userId === $sender->id) {
                 continue;

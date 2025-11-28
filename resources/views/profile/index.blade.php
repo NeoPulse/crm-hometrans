@@ -11,40 +11,54 @@
                     <span class="badge bg-primary text-uppercase">Secure Area</span>
                 </div>
                 <div class="card-body">
-                    {{-- Display a confirmation banner after a successful update. --}}
-                    @if(session('status'))
+                    {{-- Display confirmation banners after successful updates. --}}
+                    @if(session('status_avatar'))
                         <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
+                            {{ session('status_avatar') }}
+                        </div>
+                    @endif
+                    @if(session('status_password'))
+                        <div class="alert alert-success" role="alert">
+                            {{ session('status_password') }}
                         </div>
                     @endif
 
-                    {{-- Provide guidance on the available profile action. --}}
-                    <p class="text-muted">Use the form below to upload a square profile photo and update your password. Passwords should be at least eight characters and match the confirmation field.</p>
+                    {{-- Provide guidance on the available profile actions. --}}
+                    <p class="text-muted">Use the dedicated forms below to upload a square profile photo or update your password independently.</p>
 
-                    <!-- Profile update form with avatar upload and password change controls. -->
-                    <form method="POST" action="{{ route('profile.update') }}" class="needs-validation" novalidate enctype="multipart/form-data">
-                        @csrf
-                        <div class="row g-4 align-items-center">
-                            <div class="col-12 col-md-4 text-center">
-                                {{-- Current avatar preview with a fallback placeholder. --}}
+                    <div class="row g-4">
+                        <div class="col-12 col-lg-5">
+                            <!-- Avatar upload form with preview and helper text. -->
+                            <form method="POST" action="{{ route('profile.avatar') }}" class="needs-validation" novalidate enctype="multipart/form-data">
+                                @csrf
                                 @php
                                     $avatarPath = $user->avatar_path ? asset($user->avatar_path) : asset('images/avatar-placeholder.svg');
                                 @endphp
-                                <img src="{{ $avatarPath }}" alt="Profile avatar" class="rounded-circle avatar-50 mb-3">
-                                <div class="mb-3">
-                                    <label for="avatar" class="form-label">Upload avatar</label>
-                                    <input type="file" name="avatar" id="avatar" class="form-control @error('avatar') is-invalid @enderror" accept="image/*">
-                                    @error('avatar')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @else
-                                        <div class="form-text">Upload an image that will be cropped to a square JPEG.</div>
-                                    @enderror
+                                <div class="d-flex align-items-center gap-3 mb-3 p-3 border rounded">
+                                    <img src="{{ $avatarPath }}" alt="Profile avatar" class="rounded-circle avatar-50">
+                                    <div class="flex-grow-1">
+                                        <label for="avatar" class="form-label">Upload avatar</label>
+                                        <input type="file" name="avatar" id="avatar" class="form-control @error('avatar') is-invalid @enderror" accept="image/*" required>
+                                        @error('avatar')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @else
+                                            <div class="form-text">Upload an image that will be cropped to a square JPEG.</div>
+                                        @enderror
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-12 col-md-8">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="reset" class="btn btn-outline-secondary">Clear</button>
+                                    <button type="submit" class="btn btn-primary">Update Avatar</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-12 col-lg-7">
+                            <!-- Password update form kept separate from avatar handling. -->
+                            <form method="POST" action="{{ route('profile.password') }}" class="needs-validation" novalidate>
+                                @csrf
                                 <div class="mb-3">
                                     <label for="password" class="form-label">New Password</label>
-                                    <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" minlength="8">
+                                    <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" minlength="8" required>
                                     @error('password')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @else
@@ -54,17 +68,17 @@
 
                                 <div class="mb-3">
                                     <label for="password_confirmation" class="form-label">Confirm Password</label>
-                                    <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" minlength="8">
+                                    <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" minlength="8" required>
                                     <div class="form-text">Re-enter the password to confirm accuracy.</div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="reset" class="btn btn-outline-secondary">Clear</button>
-                            <button type="submit" class="btn btn-primary">Save Profile</button>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="reset" class="btn btn-outline-secondary">Clear</button>
+                                    <button type="submit" class="btn btn-success">Update Password</button>
+                                </div>
+                            </form>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>

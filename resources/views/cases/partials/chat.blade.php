@@ -96,12 +96,36 @@
         let unreadPoll = null;
         let lastMessageId = null;
 
+        // Smoothly scroll the viewport to the newest chat message when content changes.
+        const scrollToLatestMessage = () => {
+            if (!chatMessagesWrap) {
+                return;
+            }
+            requestAnimationFrame(() => {
+                chatMessagesWrap.scrollTo({
+                    top: chatMessagesWrap.scrollHeight,
+                    behavior: 'smooth',
+                });
+            });
+        };
+
+        // Safely parse JSON responses to avoid hard failures on HTML error pages.
+        const parseJsonSafely = async (response) => {
+            try {
+                return await response.clone().json();
+            } catch (error) {
+                const fallbackMessage = await response.text();
+                return { message: fallbackMessage };
+            }
+        };
+
         // Toggle overlay visibility with CSS transitions.
         const setChatVisibility = (visible) => {
             chatOpen = visible;
             if (visible) {
                 chatOverlay.classList.remove('d-none');
                 setTimeout(() => chatOverlay.classList.add('active'), 10);
+                scrollToLatestMessage();
                 fetchMessages();
                 startChatPolling();
                 stopUnreadPolling();
@@ -177,7 +201,7 @@
                 chatEmptyAlert.classList.remove('d-none');
             } else {
                 chatEmptyAlert.classList.add('d-none');
-                chatMessagesWrap.scrollTop = chatMessagesWrap.scrollHeight;
+                scrollToLatestMessage();
             }
 
             const hasNew = chatMessagesWrap.querySelector('[data-new="1"]');
@@ -209,10 +233,14 @@
 
             fetch(chatConfig.storeUrl, {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': chatConfig.csrfToken },
+                headers: { 'X-CSRF-TOKEN': chatConfig.csrfToken, Accept: 'application/json' },
                 body: formData,
+                credentials: 'same-origin',
             })
-                .then((response) => response.json().then((data) => ({ ok: response.ok, data })))
+                .then(async (response) => {
+                    const data = await parseJsonSafely(response);
+                    return { ok: response.ok, data };
+                })
                 .then(({ ok, data }) => {
                     if (!ok) {
                         alert(data.message || 'Failed to send message.');

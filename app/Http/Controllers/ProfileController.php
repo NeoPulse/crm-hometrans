@@ -43,82 +43,103 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the password for the authenticated administrator or legal user.
+     * Process password updates for the current administrator or legal user.
      */
-    public function update(Request $request): RedirectResponse
+    public function updatePassword(Request $request): RedirectResponse
     {
         // Ensure only administrators and legal users can process password updates.
         if (! in_array($request->user()->role, ['admin', 'legal'], true)) {
             abort(403, 'Only administrators and legal users can update their profile.');
         }
 
-        // Validate optional password and avatar updates to keep inputs safe.
+        // Validate the new password separately from avatar uploads to keep intent clear.
         $validated = $request->validate([
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'avatar' => ['nullable', 'image', 'max:5120'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        // Track whether any changes occurred to tailor the feedback message.
-        $changes = [];
+        // Persist the hashed password to the users table for the current account.
+        DB::table('users')
+            ->where('id', $request->user()->id)
+            ->update([
+                'password' => Hash::make($validated['password']),
+                'updated_at' => now(),
+            ]);
 
-        // Persist the hashed password to the users table for the current account when provided.
-        if (! empty($validated['password'])) {
-            DB::table('users')
-                ->where('id', $request->user()->id)
-                ->update([
-                    'password' => Hash::make($validated['password']),
-                    'updated_at' => now(),
-                ]);
+        // Log the password change for audit visibility.
+        $this->logProfileAction(
+            $request,
+            'update',
+            'Updated password from the profile page.'
+        );
 
-            $changes[] = 'password';
+        return redirect()->route('profile.show')->with('status_password', 'Password updated successfully.');
+    }
+
+    /**
+     * Handle avatar uploads independently from password updates.
+     */
+    public function updateAvatar(Request $request): RedirectResponse
+    {
+        // Ensure only administrators and legal users can process avatar updates.
+        if (! in_array($request->user()->role, ['admin', 'legal'], true)) {
+            abort(403, 'Only administrators and legal users can update their profile.');
         }
 
-        // Process avatar uploads with Intervention Image for consistent sizing and format.
-        if ($request->hasFile('avatar')) {
-            // Instantiate the image manager with the GD driver to avoid external dependencies.
-            $manager = new ImageManager(new Driver());
-            $image = $manager->read($request->file('avatar'));
+        // Validate avatar uploads separately to simplify form handling.
+        $request->validate([
+            'avatar' => ['required', 'image', 'max:5120'],
+        ]);
 
-            // Resize and crop to a square 400x400 avatar while converting to JPEG to reduce size.
-            $image->cover(400, 400);
-            $imageStream = (string) $image->toJpeg(85);
+        // Instantiate the image manager with the GD driver to avoid external dependencies.
+        $manager = new ImageManager(new Driver());
+        $image = $manager->read($request->file('avatar'));
 
-            // Build a deterministic filename per user to avoid clutter and replace previous images.
-            $filename = 'avatars/user-' . $request->user()->id . '.jpg';
-            Storage::disk('public')->put($filename, $imageStream);
+        // Resize and crop to a square 400x400 avatar while converting to JPEG to reduce size.
+        $image->cover(400, 400);
+        $imageStream = (string) $image->toJpeg(85);
 
-            // Remove an old avatar file when it differs from the new one to conserve space.
-            if ($request->user()->avatar_path && $request->user()->avatar_path !== 'storage/' . $filename) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $request->user()->avatar_path));
-            }
+        // Build a deterministic filename per user to avoid clutter and replace previous images.
+        $filename = 'avatars/user-' . $request->user()->id . '.jpg';
+        Storage::disk('public')->put($filename, $imageStream);
 
-            // Update the user record with the publicly accessible storage path.
-            DB::table('users')
-                ->where('id', $request->user()->id)
-                ->update([
-                    'avatar_path' => 'storage/' . $filename,
-                    'updated_at' => now(),
-                ]);
-
-            $changes[] = 'avatar';
+        // Remove an old avatar file when it differs from the new one to conserve space.
+        if ($request->user()->avatar_path && $request->user()->avatar_path !== 'storage/' . $filename) {
+            Storage::disk('public')->delete(str_replace('storage/', '', $request->user()->avatar_path));
         }
 
-        // Record the profile update in the activity log with contextual details.
+        // Update the user record with the publicly accessible storage path.
+        DB::table('users')
+            ->where('id', $request->user()->id)
+            ->update([
+                'avatar_path' => 'storage/' . $filename,
+                'updated_at' => now(),
+            ]);
+
+        // Log the avatar change alongside the page action for traceability.
+        $this->logProfileAction(
+            $request,
+            'update',
+            'Updated avatar from the profile page.'
+        );
+
+        return redirect()->route('profile.show')->with('status_avatar', 'Avatar updated successfully.');
+    }
+
+    /**
+     * Record profile related actions in the activity log for auditing.
+     */
+    protected function logProfileAction(Request $request, string $action, string $details): void
+    {
         DB::table('activity_logs')->insert([
             'user_id' => $request->user()->id,
-            'action' => 'update',
+            'action' => $action,
             'target_type' => 'profile',
             'target_id' => $request->user()->id,
             'location' => 'profile page',
-            'details' => $changes ? 'Updated profile fields: ' . implode(', ', $changes) : 'Opened profile with no changes.',
+            'details' => $details,
             'ip_address' => $request->ip(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-
-        // Redirect back to the profile page with a tailored success message.
-        $statusMessage = $changes ? 'Profile updated successfully.' : 'No changes were applied to the profile.';
-
-        return redirect()->route('profile.show')->with('status', $statusMessage);
     }
 }
