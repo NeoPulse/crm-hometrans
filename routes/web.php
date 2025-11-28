@@ -34,9 +34,10 @@ Route::middleware('auth')->group(function () {
     // Administrative dashboard entry point.
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Profile section for administrators and legal users to update their password.
+    // Profile section for administrators and legal users to update their credentials and avatar.
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
 
     // Case manager endpoints for admin and legal users.
     Route::get('/casemanager', [CaseManagerController::class, 'index'])->name('casemanager.index');
