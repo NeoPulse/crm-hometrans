@@ -62,7 +62,7 @@
 @section('content')
 
     <div class="row g-4">
-        <div class="col-lg-4">
+        <div class="col-12 col-lg-4">
             <!-- Stage list column showing all stages with progress. -->
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h2 class="h5 mb-0">Stages:</h2>
@@ -78,8 +78,8 @@
                 </form>
             @endif
         </div>
-        <div class="col-lg-8">
-            <!-- Task panel for the currently selected stage. -->
+        <div class="col-lg-8 d-none d-lg-block" id="desktop-task-column">
+            <!-- Task panel for the currently selected stage on desktop screens. -->
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                     <h2 class="h5 mb-1" id="stage-title">1. Client Onboarding &amp; File Opening</h2>
@@ -108,11 +108,13 @@
         let stagesData = @json($stages);
         let activeStageId = stagesData.length ? stagesData[0].id : null;
         const isAdmin = @json($isAdmin);
+        const openedMobileStages = new Set();
         const stageListEl = document.getElementById('stage-list');
         const noStagesAlert = document.getElementById('no-stages-alert');
         const tasksContent = document.getElementById('tasks-content');
         const stageTitle = document.getElementById('stage-title');
         const csrfToken = '{{ csrf_token() }}';
+        const viewportMatcher = window.matchMedia('(max-width: 991.98px)');
 
         // Encode user-controlled text to prevent HTML injection in templates.
         const escapeHtml = (value) => {
@@ -146,6 +148,16 @@
             done: { icon: 'bi-check-circle', classes: 'text-success' },
         };
 
+        // Determine whether the current viewport should use the mobile layout.
+        const isMobileLayout = () => viewportMatcher.matches;
+
+        // Reset responsive-specific state when the viewport crosses the lg breakpoint.
+        viewportMatcher.addEventListener('change', () => {
+            openedMobileStages.clear();
+            renderStages();
+            renderTasks();
+        });
+
         // Render the list of stages on the left column.
         function renderStages() {
             stageListEl.innerHTML = '';
@@ -157,7 +169,10 @@
 
             stagesData.forEach((stage, index) => {
                 const card = document.createElement('div');
-                card.className = `card stage-card shadow-sm ${stage.id === activeStageId ? 'border-primary' : ''}`;
+                const isMobile = isMobileLayout();
+                const isActiveDesktop = stage.id === activeStageId && !isMobile;
+                const isExpandedMobile = openedMobileStages.has(stage.id);
+                card.className = `card stage-card shadow-sm ${isActiveDesktop ? 'border-primary' : ''}`;
                 card.dataset.stageId = stage.id;
 
                 card.innerHTML = `
@@ -173,10 +188,31 @@
                         <div class="progress mt-2" role="progressbar" aria-label="Stage progress" style="height: 14px;">
                             <div class="progress-bar bg-success" style="width: ${stage.progress}%">${stage.progress}%</div>
                         </div>
+                        ${isMobile ? `<div class="text-muted small mt-2">${isExpandedMobile ? 'Tap to hide tasks' : 'Tap to show tasks'}</div>` : ''}
                     </div>
                 `;
 
-                card.addEventListener('click', () => {
+                // Inject the task list directly inside the card for mobile users.
+                if (isMobile && isExpandedMobile) {
+                    const mobileTasks = document.createElement('div');
+                    mobileTasks.className = 'stage-tasks-mobile mt-3';
+                    mobileTasks.innerHTML = buildTaskSection(stage);
+                    card.querySelector('.card-body').appendChild(mobileTasks);
+                }
+
+                card.addEventListener('click', (event) => {
+                    if (event.target.closest('.stage-edit') || event.target.closest('.stage-delete') || event.target.closest('.stage-tasks-mobile')) {
+                        return;
+                    }
+                    if (isMobileLayout()) {
+                        if (openedMobileStages.has(stage.id)) {
+                            openedMobileStages.delete(stage.id);
+                        } else {
+                            openedMobileStages.add(stage.id);
+                        }
+                        renderStages();
+                        return;
+                    }
                     activeStageId = stage.id;
                     renderStages();
                     renderTasks();
@@ -194,23 +230,25 @@
 
                 stageListEl.appendChild(card);
             });
+
+            // Bind task-related controls for each expanded mobile stage.
+            if (isMobileLayout()) {
+                stageListEl.querySelectorAll('.stage-tasks-mobile').forEach(container => {
+                    const stageId = Number(container.closest('.stage-card')?.dataset.stageId);
+                    const targetStage = stagesData.find(item => item.id === stageId);
+                    if (targetStage) {
+                        bindTaskInteractions(container, targetStage);
+                    }
+                });
+            }
         }
 
-        // Render tasks for the currently active stage.
-        function renderTasks() {
-            const stage = stagesData.find(item => item.id === activeStageId);
-            if (!stage) {
-                tasksContent.innerHTML = '<div class="alert alert-info mb-0">No stages available to show.</div>';
-                stageTitle.textContent = 'Stages';
-                return;
-            }
-            const stageIndex = stagesData.findIndex(item => item.id === stage.id);
-            stageTitle.textContent = `${stageIndex + 1}. ${stage.name}`;
-
+        // Build the full task section markup shared by mobile and desktop.
+        function buildTaskSection(stage) {
             const sellerTasks = stage.tasks.filter(task => task.side === 'seller');
             const buyerTasks = stage.tasks.filter(task => task.side === 'buyer');
 
-            tasksContent.innerHTML = `
+            return `
                 <div class="d-flex align-items-center mb-2 position-relative">
                     <div class="flex-grow-1 text-center">
                         <h3 class="h6 mb-0">Seller side</h3>
@@ -226,17 +264,48 @@
                 </div>
                 ${renderTaskList(buyerTasks)}
             `;
+        }
+
+        // Render tasks for the currently active stage.
+        function renderTasks() {
+            if (isMobileLayout()) {
+                tasksContent.innerHTML = '<div class="alert alert-light mb-0">Tasks are displayed inside each stage on mobile.</div>';
+                return;
+            }
+            const stage = stagesData.find(item => item.id === activeStageId);
+            if (!stage) {
+                tasksContent.innerHTML = '<div class="alert alert-info mb-0">No stages available to show.</div>';
+                stageTitle.textContent = 'Stages';
+                return;
+            }
+            const stageIndex = stagesData.findIndex(item => item.id === stage.id);
+            stageTitle.textContent = `${stageIndex + 1}. ${stage.name}`;
+
+            tasksContent.innerHTML = buildTaskSection(stage);
+
+            // Bind task actions for the desktop task container.
+            bindTaskInteractions(tasksContent, stage);
+        }
+
+        // Attach all task-related event handlers inside a given DOM scope.
+        function bindTaskInteractions(scopeElement, stage) {
+            if (!scopeElement) {
+                return;
+            }
 
             // Bind add task links for admin actions.
-            document.querySelectorAll('.add-task').forEach(link => {
+            scopeElement.querySelectorAll('.add-task').forEach(link => {
                 link.addEventListener('click', (event) => {
                     event.preventDefault();
-                    createTask(stage.id, link.dataset.side);
+                    event.stopPropagation();
+                    const targetStageId = Number(link.dataset.stage || stage?.id);
+                    createTask(targetStageId, link.dataset.side);
                 });
             });
 
             // Bind deadline updates so selected dates are persisted.
-            document.querySelectorAll('.task-deadline-input').forEach(input => {
+            scopeElement.querySelectorAll('.task-deadline-input').forEach(input => {
+                input.addEventListener('click', event => event.stopPropagation());
                 input.addEventListener('change', () => {
                     updateTask(input.dataset.taskId, {deadline: input.value || null}, input.closest('.task-row'));
                 });
@@ -249,17 +318,19 @@
             });
 
             // Bind status dropdown actions and name edits for administrators.
-            document.querySelectorAll('.status-option').forEach(item => {
+            scopeElement.querySelectorAll('.status-option').forEach(item => {
                 item.addEventListener('click', (event) => {
                     event.preventDefault();
+                    event.stopPropagation();
                     const taskId = item.dataset.taskId;
                     const status = item.dataset.status;
                     updateTask(taskId, {status: status}, item.closest('.task-row'));
                 });
             });
-            document.querySelectorAll('.edit-task-name').forEach(item => {
+            scopeElement.querySelectorAll('.edit-task-name').forEach(item => {
                 item.addEventListener('click', (event) => {
                     event.preventDefault();
+                    event.stopPropagation();
                     const taskId = item.dataset.taskId;
                     const existingName = decodeURIComponent(item.dataset.taskName || '');
                     const newName = prompt('Enter a new task title', existingName);
@@ -270,9 +341,10 @@
             });
 
             // Bind delete options for tasks.
-            document.querySelectorAll('.delete-task').forEach(item => {
+            scopeElement.querySelectorAll('.delete-task').forEach(item => {
                 item.addEventListener('click', (event) => {
                     event.preventDefault();
+                    event.stopPropagation();
                     const taskId = item.dataset.taskId;
                     if (confirm('Delete this task?')) {
                         deleteTask(taskId);
@@ -439,6 +511,11 @@
                     if (!stagesData.find(stage => stage.id === activeStageId) && stagesData.length) {
                         activeStageId = stagesData[0].id;
                     }
+                    openedMobileStages.forEach((stageId) => {
+                        if (!stagesData.find(stage => stage.id === stageId)) {
+                            openedMobileStages.delete(stageId);
+                        }
+                    });
                     renderStages();
                     renderTasks();
                 }
