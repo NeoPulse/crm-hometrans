@@ -93,6 +93,8 @@
             </div>
         </div>
     </div>
+
+    @include('cases.partials.chat', ['case' => $case, 'chatProfile' => $chatProfile, 'isAdmin' => $isAdmin])
 @endsection
 
 @push('scripts')

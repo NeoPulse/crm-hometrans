@@ -78,3 +78,90 @@ body {
 .task-row.saving .saving-indicator {
     opacity: 1;
 }
+
+/* Anchor the chat launcher to the bottom-right corner. */
+#case-chat-toggle {
+    z-index: 1040;
+}
+
+/* Overlay that dims the background while the chat is open. */
+.case-chat-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 1045;
+}
+
+/* Visible state for the chat overlay. */
+.case-chat-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal container respecting viewport constraints. */
+.case-chat-modal {
+    width: 600px;
+    max-width: calc(100vw - 20px);
+    height: 500px;
+    max-height: calc(100vh - 20px);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+/* Slide the modal into place when the overlay is active. */
+.case-chat-overlay.active .case-chat-modal {
+    transform: translateY(0);
+}
+
+/* Scrollable chat body area. */
+.case-chat-body {
+    height: 360px;
+    overflow-y: auto;
+}
+
+/* Base styling for chat bubbles. */
+.case-chat-bubble {
+    max-width: 90%;
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+
+/* Own messages should stand out with a primary background. */
+.case-chat-bubble.mine {
+    background: #0d6efd;
+    color: #fff;
+    margin-left: auto;
+}
+
+/* Received messages stay neutral. */
+.case-chat-bubble.theirs {
+    background: #f8f9fa;
+    color: #212529;
+}
+
+/* Attachment chip inside chat bubbles. */
+.case-chat-attachment {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Drag-and-drop highlight for the upload zone. */
+#chat-dropzone.dragover {
+    border-color: #0d6efd;
+    background: #e7f1ff;
+}
+
+/* Utility class to show dashed borders when needed. */
+.border-dashed {
+    border-style: dashed !important;
+}
