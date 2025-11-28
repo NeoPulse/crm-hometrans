@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ManagesCaseAccess;
 use App\Models\Attention;
 use App\Models\CaseFile;
 use App\Models\Stage;
@@ -15,6 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CaseStageController extends Controller
 {
+    use ManagesCaseAccess;
+
     /**
      * Display the case timeline with stages and tasks.
      */
@@ -52,6 +55,7 @@ class CaseStageController extends Controller
             'participants' => $this->buildParticipants($caseFile),
             'stages' => $stagePayloads,
             'isAdmin' => $viewer->role === 'admin',
+            'chatProfile' => $this->buildChatProfile($caseFile, $viewer),
         ]);
     }
 
@@ -298,42 +302,6 @@ class CaseStageController extends Controller
     }
 
     /**
-     * Ensure only administrators can perform mutations.
-     */
-    protected function assertAdmin(User $user): void
-    {
-        if ($user->role !== 'admin') {
-            abort(403, 'Only administrators can modify the case.');
-        }
-    }
-
-    /**
-     * Confirm whether the current user can open the case view.
-     */
-    protected function authorizeCaseAccess(CaseFile $caseFile, User $user): void
-    {
-        if ($user->role === 'admin') {
-            return;
-        }
-
-        // Legal and client roles may only access in-progress cases where they participate.
-        if ($caseFile->status !== 'progress') {
-            abort(403, 'Only in-progress cases are available.');
-        }
-
-        $allowedIds = array_filter([
-            $caseFile->sell_legal_id,
-            $caseFile->buy_legal_id,
-            $caseFile->sell_client_id,
-            $caseFile->buy_client_id,
-        ]);
-
-        if (! in_array($user->id, $allowedIds, true)) {
-            abort(403, 'You do not have access to this case.');
-        }
-    }
-
-    /**
      * Pull stages with ordered tasks and unread flags for the given user.
      */
     protected function loadStagesWithAttentions(CaseFile $caseFile, User $user)
@@ -432,6 +400,46 @@ class CaseStageController extends Controller
     }
 
     /**
+     * Determine chat permissions and labels for the viewer.
+     */
+    protected function buildChatProfile(CaseFile $caseFile, User $user): array
+    {
+        if ($user->role === 'admin') {
+            return [
+                'can_post' => true,
+                'default_label' => 'manager',
+                'labels' => [
+                    ['value' => 'manager', 'label' => 'Manager'],
+                    ['value' => 'buy', 'label' => 'Buy Side'],
+                    ['value' => 'sell', 'label' => 'Sell Side'],
+                ],
+            ];
+        }
+
+        if ($user->role === 'legal') {
+            $label = null;
+
+            if ($caseFile->buy_legal_id === $user->id) {
+                $label = 'buy';
+            } elseif ($caseFile->sell_legal_id === $user->id) {
+                $label = 'sell';
+            }
+
+            return [
+                'can_post' => (bool) $label,
+                'default_label' => $label,
+                'labels' => $label ? [['value' => $label, 'label' => $label === 'buy' ? 'Buy Side' : 'Sell Side']] : [],
+            ];
+        }
+
+        return [
+            'can_post' => false,
+            'default_label' => null,
+            'labels' => [],
+        ];
+    }
+
+    /**
      * Create a "new" attention record for each assigned client and solicitor.
      */
     protected function createNewAttention(CaseFile $caseFile, string $targetType, int $targetId): void
@@ -453,21 +461,4 @@ class CaseStageController extends Controller
         }
     }
 
-    /**
-     * Append an entry to the activity log table.
-     */
-    protected function logAction(User $user, string $action, ?string $targetType, ?int $targetId, ?string $location, string $details): void
-    {
-        DB::table('activity_logs')->insert([
-            'user_id' => $user->id,
-            'action' => $action,
-            'target_type' => $targetType,
-            'target_id' => $targetId,
-            'location' => $location,
-            'details' => $details,
-            'ip_address' => request()->ip(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    }
 }

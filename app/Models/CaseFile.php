@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\CaseChatMessage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Stage;
@@ -53,6 +54,14 @@ class CaseFile extends Model
     public function attentions()
     {
         return $this->hasMany(Attention::class, 'target_id')->where('target_type', 'case');
+    }
+
+    /**
+     * Relationship: chat messages bound to this case.
+     */
+    public function chatMessages()
+    {
+        return $this->hasMany(CaseChatMessage::class, 'case_id')->orderBy('id');
     }
 
     /**
