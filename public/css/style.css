@@ -1,6 +1,13 @@
-/* Base typography using Instrument Sans for consistency. */
 body {
     font-family: 'Instrument Sans', Arial, sans-serif;
+}
+
+.card-footer {
+    padding-bottom: 0;
+    padding-top: 0;
+}
+.pagination {
+    padding-top: 12px;
 }
 
 /* Avatar styling to enforce 50x50 circular images. */
@@ -189,5 +196,60 @@ body {
     #case-chat-toggle {
         right: 1rem;
         bottom: 1rem;
+    }
+}
+
+
+/**** Login ****/
+.login__left {
+    background-color: #636981;
+    color: #FFF;
+}
+.login-box {
+    width: 100%;
+    margin: 100px 0;
+}
+.login-box-msg {
+    font-size: 25px;
+}
+.login .input-group-append {
+    margin-left: -4px !important;
+}
+.registration__text {
+    margin: 15px 0 40px;
+}
+.registration__btn {
+    width: 100%;
+    background-color: #636981;
+    color: #FFF;
+}
+.pwdControl {
+    width: 16px;
+    height: 22px;
+    background-image: url(/images/eye.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.pwdControl.view {
+    background-image: url(/images/eye-slash.svg);
+}
+@media only screen and (max-width: 576px) {
+    .login-page {
+        height: auto;
+    }
+    .login-box {
+        margin: 34px 0;
+    }
+    .login-box input, .login-box button, .registration__btn {
+        font-size: 18px;
+    }
+    .login-box .pwdControl, .login-box .login__envelope {
+        width: 23px;
+    }
+}
+@media (min-width: 780px) {
+    .login {
+        margin-top: 15vh;
     }
 }

@@ -71,8 +71,7 @@
                 </table>
             </div>
         </div>
-        <div class="card-footer d-flex justify-content-between align-items-center">
-            <div class="text-muted small">Showing {{ $logs->firstItem() ?? 0 }} to {{ $logs->lastItem() ?? 0 }} of {{ $logs->total() }} entries</div>
+        <div class="card-footer">
             {{ $logs->links('pagination::bootstrap-5') }}
         </div>
     </div>

@@ -87,7 +87,7 @@ class ProfileController extends Controller
 
         // Validate avatar uploads separately to simplify form handling.
         $request->validate([
-            'avatar' => ['required', 'image', 'max:5120'],
+            'avatar' => ['required', 'image', 'max:10000'],
         ]);
 
         // Instantiate the image manager with the GD driver to avoid external dependencies.

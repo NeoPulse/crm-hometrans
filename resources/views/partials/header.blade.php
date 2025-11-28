@@ -39,11 +39,14 @@
         <!-- Brand with primary navigation links and exit control. -->
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center">
-                {{-- Clickable brand for staff roles while keeping the client view static. --}}
                 @if($brandTarget)
-                    <a href="{{ $brandTarget }}" class="text-decoration-none fw-bold fs-5 text-primary">{{ config('app.name', 'HomeTrans CRM') }}</a>
+                    <a href="{{ $brandTarget }}" class="text-decoration-none">
+                        {{-- Logo replaces text --}}
+                        <img src="{{ asset('images/logo.svg') }}" alt="Logo" height="50">
+                    </a>
                 @else
-                    <div class="fw-bold fs-5 text-primary">{{ config('app.name', 'HomeTrans CRM') }}</div>
+                    {{-- Static logo --}}
+                    <img src="{{ asset('images/logo.svg') }}" alt="Logo" height="50">
                 @endif
             </div>
             <nav aria-label="Primary navigation">
@@ -54,14 +57,12 @@
                             <a class="nav-link {{ $link['active'] ? 'active' : '' }}" href="{{ $link['route'] }}">{{ $link['label'] }}</a>
                         </li>
                     @endforeach
-                    <li class="nav-item">
+                    <li class="nav-item ps-5">
                         @if($isAuthenticated)
                             <form method="POST" action="{{ $logoutRoute }}">
                                 @csrf
                                 <button type="submit" class="btn btn-outline-danger btn-sm">Exit</button>
                             </form>
-                        @else
-                            <button type="button" class="btn btn-outline-secondary btn-sm" disabled>Exit</button>
                         @endif
                     </li>
                 </ul>

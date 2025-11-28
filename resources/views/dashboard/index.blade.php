@@ -3,8 +3,7 @@
 @section('content')
     <!-- Top heading describing the admin dashboard purpose. -->
     <div class="d-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0">Dashboard</h1>
-        <span class="text-muted">Administrative overview</span>
+        <h1 class="h3 mb-0 mx-auto">Admin dashboard</h1>
     </div>
 
     <div class="row g-4 mb-4">

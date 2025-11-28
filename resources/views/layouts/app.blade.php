@@ -6,6 +6,8 @@
     <meta name="robots" content="noindex, nofollow">
     <title>{{ config('app.name', 'HomeTrans CRM') }}</title>
 
+    <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
+
     <!-- Load fonts for consistent typography. -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
@@ -32,7 +34,7 @@
     <!-- Unified site footer. -->
     <footer class="bg-white border-top py-3 mt-auto">
         <div class="container text-center text-muted small">
-            HomeTrans CRM &mdash; internal case workflow tools. All content is private.
+            &copy; {{ date("Y") }} <a class="text-dark" href="https://hometrans.uk/" target="_blank">HomeTrans</a> CRM. All content is private.
         </div>
     </footer>
 </div>
