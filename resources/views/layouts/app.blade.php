@@ -19,11 +19,7 @@
 </head>
 <body class="bg-light">
 <div class="d-flex flex-column min-vh-100">
-    @hasSection('header')
-        @yield('header')
-    @else
-        @include('partials.header')
-    @endif
+    @include('partials.header')
 
     <!-- Page content container. -->
     <main class="container py-4 flex-grow-1">
