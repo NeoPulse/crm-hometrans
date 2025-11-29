@@ -8,8 +8,9 @@
     $user = auth()->user();
     $isAdmin = $user && $user->role === 'admin';
     $isLegal = $user && $user->role === 'legal';
-    $casesRoute = $user && $user->role === 'legal' ? route('casemanager.legal') : route('casemanager.index');
-    $brandTarget = $isAdmin ? route('dashboard') : ($isLegal ? $casesRoute : null);
+    $isClient = $user && $user->role === 'client';
+    $casesRoute = $isLegal ? route('casemanager.legal') : route('casemanager.index');
+    $brandTarget = $isAdmin ? route('dashboard') : ($isAuthenticated ? $casesRoute : null);
 
     // Build a role-aware navigation definition to keep visibility rules concise.
     $navLinks = [];
@@ -22,22 +23,18 @@
             ['label' => 'Profile', 'route' => route('profile.show'), 'active' => request()->routeIs('profile.*')],
             ['label' => 'Logs', 'route' => route('logs.index'), 'active' => request()->routeIs('logs.*')],
         ];
-    } elseif ($isLegal) {
+    } elseif ($isLegal || $isClient) {
         $navLinks = [
             ['label' => 'Cases', 'route' => $casesRoute, 'active' => request()->routeIs('casemanager.*')],
             ['label' => 'Profile', 'route' => route('profile.show'), 'active' => request()->routeIs('profile.*')],
-        ];
-    } elseif ($isAuthenticated) {
-        $navLinks = [
-            ['label' => 'Cases', 'route' => $casesRoute, 'active' => request()->routeIs('casemanager.*')],
         ];
     }
 @endphp
 
 <div class="bg-white border-bottom shadow-sm">
     <div class="container py-3">
-        <!-- Brand with primary navigation links and exit control. -->
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <!-- Responsive navigation that collapses to a burger on md screens and below. -->
+        <nav class="navbar navbar-expand-lg navbar-light" aria-label="Primary navigation">
             <div class="d-flex align-items-center">
                 @if($brandTarget)
                     <a href="{{ $brandTarget }}" class="text-decoration-none">
@@ -48,24 +45,27 @@
                     <img src="{{ asset('images/logo.svg') }}" alt="Logo" height="40">
                 @endif
             </div>
-            <nav aria-label="Primary navigation">
+            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#primaryNavbar" aria-controls="primaryNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="primaryNavbar">
                 <!-- Render the navigation items appropriate for the current user role. -->
-                <ul class="nav nav-pills align-items-center">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2 mt-3 mt-lg-0">
                     @foreach($navLinks as $link)
                         <li class="nav-item">
                             <a class="nav-link {{ $link['active'] ? 'active' : '' }}" href="{{ $link['route'] }}">{{ $link['label'] }}</a>
                         </li>
                     @endforeach
-                    <li class="nav-item ps-5">
-                        @if($isAuthenticated)
-                            <form method="POST" action="{{ $logoutRoute }}">
+                    @if($isAuthenticated)
+                        <li class="nav-item mt-2 mt-lg-0">
+                            <form method="POST" action="{{ $logoutRoute }}" class="d-flex">
                                 @csrf
-                                <button type="submit" class="btn btn-outline-danger btn-sm">Exit</button>
+                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">Exit</button>
                             </form>
-                        @endif
-                    </li>
+                        </li>
+                    @endif
                 </ul>
-            </nav>
-        </div>
+            </div>
+        </nav>
     </div>
 </div>
