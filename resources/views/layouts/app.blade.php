@@ -19,7 +19,6 @@
 </head>
 <body class="bg-light">
 <div class="d-flex flex-column min-vh-100">
-    <!-- Shared header placed above all pages with per-page override support. -->
     @hasSection('header')
         @yield('header')
     @else

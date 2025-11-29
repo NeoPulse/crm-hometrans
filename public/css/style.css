@@ -10,6 +10,12 @@ body {
     padding-top: 12px;
 }
 
+
+.caseShow__participantName {
+    max-width: 90px;
+}
+
+
 /* Avatar styling to enforce 50x50 circular images. */
 .avatar-50 {
     width: 50px;
@@ -63,14 +69,13 @@ body {
 /* Ensure inline inputs retain alignment without visible borders. */
 .task-name-input,
 .task-deadline-input {
-    min-width: 140px;
+    min-width: 130px;
     max-width: 240px;
     box-shadow: none !important;
 }
 
-/* Prevent overflowing task names by truncating long text. */
-.task-row .text-truncate {
-    max-width: 320px;
+.task__name {
+    max-width: 47%;
 }
 
 /* Keep the participant strip on a single line while allowing horizontal scroll on small screens. */
@@ -78,25 +83,26 @@ body {
     white-space: nowrap;
 }
 
-/* Anchor the saving indicator inside task rows without shifting layout. */
 .task-row .saving-indicator {
-    right: 0;
+    left: 0;
     top: 50%;
     transform: translateY(-50%);
     opacity: 0;
     transition: opacity 0.2s ease;
 }
-
-/* Reveal the saving indicator when updates are in progress. */
 .task-row.saving .saving-indicator {
     opacity: 1;
 }
+.task-row .dropdown-toggle::after {
+    display: none;
+}
 
 /* Anchor the chat launcher to the bottom-right corner. */
+/*
 #case-chat-toggle {
     z-index: 1040;
 }
-
+*/
 /* Overlay that dims the background while the chat is open. */
 .case-chat-overlay {
     position: fixed;

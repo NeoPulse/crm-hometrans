@@ -1,71 +1,83 @@
 @extends('layouts.app')
 
-@section('header')
-    <!-- Case-specific header replacing the default navigation for the case area. -->
-    @php
-        $currentUser = auth()->user();
-        $isLegal = $currentUser && $currentUser->role === 'legal';
-        $brandTarget = $isAdmin ? route('dashboard') : ($isLegal ? route('casemanager.legal') : null);
-    @endphp
-    <div class="bg-white border-bottom shadow-sm">
-        <div class="container py-3">
-            <div class="d-flex align-items-center gap-4 flex-nowrap">
-                <div class="d-flex align-items-center gap-3 flex-shrink-0">
-                    {{-- Role-aware brand link that keeps the client view static. --}}
-                    @if($brandTarget)
-                        <a href="{{ $brandTarget }}" class="text-decoration-none fw-bold text-primary fs-5">HomeTrans CRM</a>
-                    @else
-                        <div class="fw-bold text-primary fs-5">HomeTrans CRM</div>
-                    @endif
-                    <div class="text-nowrap">
-                        <div class="text-uppercase text-muted small">Postal code</div>
-                        <h1 class="h5 mb-0">Case {{ $case->postal_code }}</h1>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-3 flex-nowrap overflow-auto team-strip">
-                    @foreach ($participants as $participant)
-                        @php
-                            $user = $participant['user'];
-                            $avatar = $user && $user->avatar_path ? asset($user->avatar_path) : asset('images/avatar-placeholder.svg');
-                            $tooltipLines = [];
-                            if ($user) {
-                                $tooltipLines[] = e($user->display_name ?? $user->name ?? 'User');
-                                if ($participant['office']) {
-                                    $tooltipLines[] = 'Office: ' . e($participant['office']);
-                                }
-                                if ($user->phone) {
-                                    $tooltipLines[] = '<a href="tel:' . e($user->phone) . '">' . e($user->phone) . '</a>';
-                                }
-                                if ($user->email) {
-                                    $tooltipLines[] = '<a href="mailto:' . e($user->email) . '">' . e($user->email) . '</a>';
-                                }
-                            }
-                        @endphp
-                        <div class="d-flex align-items-center gap-2 team-member" data-bs-toggle="tooltip"
-                             data-bs-html="true" title="{!! $user ? implode('<br>', $tooltipLines) : 'Not assigned' !!}">
-                            <div class="text-muted small text-uppercase">{{ $participant['label'] }}</div>
-                            <img src="{{ $avatar }}" alt="Avatar" class="rounded-circle avatar-50">
+@section('content')
+
+    <div class="row align-items-center">
+        <div class="col-6 col-lg-3">
+            <h1 class="fs-4 mb-0">Case {{ $case->postal_code }}</h1>
+            <p class="m-0">Deadline {{ optional($case->deadline)->format('d/m') ?? '—' }}</p>
+        </div>
+        <div class="col-6 col-lg-2 text-end text-lg-center">
+            <button id="case-chat-toggle" class="btn btn-primary shadow-sm">
+                    <i class="bi bi-chat-dots-fill me-2"></i>Case chat
+                    <span id="case-chat-unread" class="badge bg-danger ms-2 d-none">0</span>
+            </button>
+        </div>
+        <div class="col-lg-7 mt-3 mt-lg-0">
+            <div class="d-lg-flex gap-3 justify-content-between justify-content-lg-end">
+
+                @foreach ($participants as $participant)
+                    @php
+                        /** @var \App\Models\User|null $user */
+                        $user = $participant['user'] ?? null;
+
+                        if (! $user || empty($user->display_name)) {
+                            continue;
+                        }
+
+                        $label = $participant['label'] ?? '';
+
+                        $avatar = $user->avatar_path
+                            ? asset($user->avatar_path)
+                            : asset('images/avatar-placeholder.svg');
+
+                        $popoverLines = [];
+
+                        $popoverLines[] = e($user->display_name ?? $user->name ?? 'User');
+
+                        if (!empty($participant['office'])) {
+                            $popoverLines[] = 'Office: ' . e($participant['office']);
+                        }
+
+                        if ($user->phone) {
+                            $popoverLines[] =
+                                "<a href='tel:" . e($user->phone) . "'>" . e($user->phone) . "</a>";
+                        }
+
+                        if ($user->email) {
+                            $popoverLines[] =
+                                "<a href='mailto:" . e($user->email) . "'>" . e($user->email) . "</a>";
+                        }
+
+                        $popover = implode('<br>', $popoverLines);
+                    @endphp
+
+                    <div class="team-member d-flex align-items-center justify-content-between px-3 py-2 border rounded flex-shrink-0"
+                         tabindex="0"
+                         data-bs-toggle="popover"
+                         data-bs-trigger="focus"
+                         data-bs-html="true"
+                         data-bs-placement="bottom"
+                         data-bs-content="{!! $popover !!}">
+
+                        <div class="fw-semibold caseShow__participantName">
+                            {{ $label }}
                         </div>
-                    @endforeach
-                </div>
-                <div class="ms-auto flex-shrink-0">
-                    <form method="POST" action="{{ route('logout') }}" class="mb-0">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-danger btn-sm">Exit</button>
-                    </form>
-                </div>
+
+                        <img src="{{ $avatar }}" class="rounded-circle avatar-50" alt="Avatar">
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>
-@endsection
 
-@section('content')
+    <hr class="pb-3">
 
-    <div class="row g-4">
-        <div class="col-12 col-lg-4">
-            <!-- Stage list column showing all stages with progress. -->
+    <div class="row g-5">
+        <div class="col-12 col-lg-5">
+            {{-- Stage list column showing all stages with progress. --}}
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h2 class="h5 mb-0">Stages:</h2>
+                <h2 class="h5 mb-2">Stages:</h2>
             </div>
             <div id="stage-list" class="d-flex flex-column gap-2"></div>
             <div id="no-stages-alert" class="alert alert-info d-none">No stages have been added yet.</div>
@@ -78,8 +90,8 @@
                 </form>
             @endif
         </div>
-        <div class="col-lg-8 d-none d-lg-block" id="desktop-task-column">
-            <!-- Task panel for the currently selected stage on desktop screens. -->
+        <div class="col-lg-7 d-none d-lg-block" id="desktop-task-column">
+            {{-- Task panel for the currently selected stage on desktop screens. --}}
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                     <h2 class="h5 mb-1" id="stage-title">1. Client Onboarding &amp; File Opening</h2>
@@ -99,6 +111,19 @@
 
 @push('scripts')
     <script>
+
+        // Popover initialization
+        document.addEventListener('DOMContentLoaded', function () {
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            popoverTriggerList.map(function (el) {
+                return new bootstrap.Popover(el, {
+                    html: true,
+                    sanitize: false,
+                    trigger: 'focus'
+                });
+            });
+        });
+
         // Bootstrap tooltip initialisation for participant hover cards.
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
             new bootstrap.Tooltip(el);
@@ -143,9 +168,9 @@
 
         // Provide consistent iconography and colour coding per status.
         const statusMeta = {
-            new: { icon: 'bi-plus-circle', classes: 'text-primary' },
-            progress: { icon: 'bi-arrow-repeat', classes: 'text-warning' },
-            done: { icon: 'bi-check-circle', classes: 'text-success' },
+            new: { icon: 'bi-plus-circle-fill', classes: 'text-secondary' },
+            progress: { icon: 'bi-play-circle-fill', classes: 'text-primary' },
+            done: { icon: 'bi-check-circle-fill', classes: 'text-success' },
         };
 
         // Determine whether the current viewport should use the mobile layout.
@@ -172,7 +197,7 @@
                 const isMobile = isMobileLayout();
                 const isActiveDesktop = stage.id === activeStageId && !isMobile;
                 const isExpandedMobile = openedMobileStages.has(stage.id);
-                card.className = `card stage-card shadow-sm ${isActiveDesktop ? 'border-primary' : ''}`;
+                card.className = `card stage-card shadow-sm mb-2 ${isActiveDesktop ? 'border-primary' : ''}`;
                 card.dataset.stageId = stage.id;
 
                 card.innerHTML = `
@@ -185,7 +210,7 @@
                                 ${isAdmin ? '<button type="button" class="btn btn-sm btn-link text-danger stage-delete" title="Delete stage"><i class="bi bi-trash"></i></button>' : ''}
                             </div>
                         </div>
-                        <div class="progress mt-2" role="progressbar" aria-label="Stage progress" style="height: 14px;">
+                        <div class="progress mt-2" role="progressbar" aria-label="Stage progress" style="height: 20px;">
                             <div class="progress-bar bg-success" style="width: ${stage.progress}%">${stage.progress}%</div>
                         </div>
                         ${isMobile ? `<div class="text-muted small mt-2">${isExpandedMobile ? 'Tap to hide tasks' : 'Tap to show tasks'}</div>` : ''}
@@ -251,14 +276,14 @@
             return `
                 <div class="d-flex align-items-center mb-2 position-relative">
                     <div class="flex-grow-1 text-center">
-                        <h3 class="h6 mb-0">Seller side</h3>
+                        <h3 class="h6 mb-0 fw-bold">Seller side</h3>
                     </div>
                     ${isAdmin ? `<a href="#" class="link-primary text-decoration-none add-task position-absolute end-0 top-50 translate-middle-y" data-side="seller" data-stage="${stage.id}">add task</a>` : ''}
                 </div>
                 ${renderTaskList(sellerTasks)}
                 <div class="d-flex align-items-center mt-4 mb-2 position-relative">
                     <div class="flex-grow-1 text-center">
-                        <h3 class="h6 mb-0">Buyer side</h3>
+                        <h3 class="h6 mb-0 fw-bold">Buyer side</h3>
                     </div>
                     ${isAdmin ? `<a href="#" class="link-primary text-decoration-none add-task position-absolute end-0 top-50 translate-middle-y" data-side="buyer" data-stage="${stage.id}">add task</a>` : ''}
                 </div>
@@ -361,18 +386,18 @@
 
             return tasks.map((task, index) => {
                 const meta = statusMeta[task.status];
-                const statusIcon = `<i class="bi ${meta.icon} ${meta.classes}"></i>`;
+                const statusIcon = `<i class="bi ${meta.icon} ${meta.classes} fs-4"></i>`;
                 const deadlineClass = task.overdue ? 'bg-danger-subtle text-danger' : 'bg-light';
 
                 return `
-                    <div class="d-flex align-items-center gap-3 border-bottom pb-3 mb-3 task-row position-relative">
+                    <div class="d-flex align-items-center gap-3 border-bottom pb-1 mb-1 task-row position-relative">
                         <div class="fw-semibold text-muted" style="min-width: 24px;">${index + 1}.</div>
-                        <div class="flex-grow-1">
-                            <div class="fw-semibold text-truncate" title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</div>
+                        <div class="flex-grow-1 task__name">
+                            <div class="text-truncate" title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</div>
                         </div>
                         <div class="d-flex align-items-center gap-2 ms-auto justify-content-end text-end">
                             ${task.is_new ? '<span class="badge bg-danger">new</span>' : ''}
-                            <div class="badge ${deadlineClass} text-dark p-2 rounded task-deadline">
+                            <div class="badge ${deadlineClass} text-dark rounded task-deadline">
                                 ${isAdmin ? `<input type="date" class="form-control form-control-sm border-0 bg-transparent task-deadline-input" value="${task.deadline ?? ''}" data-task-id="${task.id}">` : task.deadline_display}
                             </div>
                             ${isAdmin ? dropdownStatus(task.id, statusIcon, task.name) : statusIcon}
@@ -391,9 +416,9 @@
         function dropdownStatus(taskId, iconHtml, taskName) {
             return `
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-success" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a href="#" class="dropdown-toggle text-success" data-bs-toggle="dropdown" aria-expanded="false">
                         ${iconHtml}
-                    </button>
+                    </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item text-primary edit-task-name" href="#" data-task-id="${taskId}" data-task-name="${encodeURIComponent(taskName ?? '')}">Edit name</a></li>
                         <li><hr class="dropdown-divider"></li>

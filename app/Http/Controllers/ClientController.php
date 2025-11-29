@@ -22,7 +22,7 @@ class ClientController extends Controller
     {
         // Only administrators are allowed to manage the client registry.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can access clients.');
+            abort(403, 'Only administrators can access.');
         }
 
         // Capture filter and sorting inputs with safe defaults.

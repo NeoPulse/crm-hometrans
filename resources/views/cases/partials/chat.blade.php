@@ -1,8 +1,9 @@
-<!-- Floating chat launcher that stays pinned to the viewport. -->
-<button id="case-chat-toggle" class="btn btn-primary position-fixed bottom-0 end-0 m-4 shadow-lg">
+{{--
+<button id="case-chat-toggle" class="btn btn-primary position-fixed bottom-0 end-0 shadow-lg px-5 py-2 me-5 fs-5">
     <i class="bi bi-chat-dots-fill me-2"></i>Case chat
     <span id="case-chat-unread" class="badge bg-danger ms-2 d-none">0</span>
 </button>
+--}}
 
 <!-- Modal-style overlay for the chat panel. -->
 <div id="case-chat-overlay" class="case-chat-overlay d-none">

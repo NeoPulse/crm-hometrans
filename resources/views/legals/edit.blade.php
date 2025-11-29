@@ -39,7 +39,7 @@
         <div class="card-body">
             <form method="POST" action="{{ route('legals.update', $legal) }}" id="legal-form" novalidate enctype="multipart/form-data">
                 @csrf
-                <div class="row g-3 align-items-start">
+                <div class="row g-lg-5 align-items-start">
                     <div class="col-12 col-lg-6">
                         {{-- Avatar preview and upload control for the legal profile. --}}
                         @php
@@ -75,6 +75,14 @@
                         <div class="mt-3">
                             <!-- Company and web presence details. -->
                             <div class="mb-3">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ $legal->email }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="person" class="form-label">Person *</label>
+                                <input type="text" class="form-control" id="person" name="person" value="{{ optional($legal->legalProfile)->person ?? $legal->name }}" required>
+                            </div>
+                            <div class="mb-3">
                                 <label for="company" class="form-label">Company</label>
                                 <input type="text" class="form-control" id="company" name="company" value="{{ optional($legal->legalProfile)->company }}">
                             </div>
@@ -86,29 +94,21 @@
                                 <label for="locality" class="form-label">Locality</label>
                                 <input type="text" class="form-control" id="locality" name="locality" value="{{ optional($legal->legalProfile)->locality }}">
                             </div>
-                            <div class="mb-3">
-                                <label for="address1" class="form-label">Address 1</label>
-                                <input type="text" class="form-control" id="address1" name="address1" value="{{ $legal->address1 }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="address2" class="form-label">Address 2</label>
-                                <input type="text" class="form-control" id="address2" name="address2" value="{{ $legal->address2 }}">
-                            </div>
                         </div>
                     </div>
                     <div class="col-12 col-lg-6">
                         <!-- Primary contact and communication fields. -->
                         <div class="mb-3">
-                            <label for="person" class="form-label">Person *</label>
-                            <input type="text" class="form-control" id="person" name="person" value="{{ optional($legal->legalProfile)->person ?? $legal->name }}" required>
+                            <label for="address1" class="form-label">Address 1</label>
+                            <input type="text" class="form-control" id="address1" name="address1" value="{{ $legal->address1 }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="address2" class="form-label">Address 2</label>
+                            <input type="text" class="form-control" id="address2" name="address2" value="{{ $legal->address2 }}">
                         </div>
                         <div class="mb-3">
                             <label for="phone" class="form-label">Mobile</label>
                             <input type="text" class="form-control" id="phone" name="phone" value="{{ $legal->phone }}">
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email *</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ $legal->email }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="office" class="form-label">Office</label>
@@ -120,7 +120,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="notes" class="form-label">Notes</label>
-                            <textarea class="form-control" id="notes" name="notes" rows="6">{{ $legal->notes }}</textarea>
+                            <textarea class="form-control" id="notes" name="notes" rows="8">{{ $legal->notes }}</textarea>
                         </div>
                     </div>
                 </div>

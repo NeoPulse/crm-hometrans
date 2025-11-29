@@ -41,20 +41,14 @@
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
 
-    <!-- Warning to prevent deletion when the client participates in cases. -->
-    @if (($relatedCases->total() ?? $relatedCases->count()) > 0)
-        <div class="alert alert-warning">Client cannot be removed while assigned to cases.</div>
-    @endif
-
     <!-- Client form split into two columns for activation, contact, and notes. -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
             <form method="POST" action="{{ route('clients.update', $client) }}" id="client-form" novalidate>
                 @csrf
-                <div class="row g-3 align-items-start">
+                <div class="row g-5 align-items-start">
                     <div class="col-12 col-lg-6">
                         <div class="p-3 rounded" id="activation-block">
-                            <!-- Activation radio set updates row background dynamically. -->
                             <label class="form-label d-block">Activated *</label>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="is_active" id="activeYes" value="1" {{ $client->is_active ? 'checked' : '' }} required>
@@ -66,7 +60,6 @@
                             </div>
                         </div>
                         <div class="mt-3">
-                            <!-- First and last name fields map to the client profile. -->
                             <div class="mb-3">
                                 <label for="first_name" class="form-label">First name</label>
                                 <input type="text" class="form-control" id="first_name" name="first_name" value="{{ optional($client->clientProfile)->first_name }}">
@@ -83,18 +76,17 @@
                                 <label for="phone" class="form-label">Phone</label>
                                 <input type="text" class="form-control" id="phone" name="phone" value="{{ $client->phone }}">
                             </div>
-                            <div class="mb-3">
-                                <label for="address1" class="form-label">Address 1</label>
-                                <input type="text" class="form-control" id="address1" name="address1" value="{{ $client->address1 }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="address2" class="form-label">Address 2</label>
-                                <input type="text" class="form-control" id="address2" name="address2" value="{{ $client->address2 }}">
-                            </div>
                         </div>
                     </div>
                     <div class="col-12 col-lg-6">
-                        <!-- Secondary details for the client card without credential changes. -->
+                        <div class="mb-3">
+                            <label for="address1" class="form-label">Address 1</label>
+                            <input type="text" class="form-control" id="address1" name="address1" value="{{ $client->address1 }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="address2" class="form-label">Address 2</label>
+                            <input type="text" class="form-control" id="address2" name="address2" value="{{ $client->address2 }}">
+                        </div>
                         <div class="mb-3">
                             <label for="headline" class="form-label">Headline</label>
                             <input type="text" class="form-control" id="headline" name="headline" value="{{ $client->headline }}">

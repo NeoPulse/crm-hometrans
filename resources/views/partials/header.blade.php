@@ -41,12 +41,11 @@
             <div class="d-flex align-items-center">
                 @if($brandTarget)
                     <a href="{{ $brandTarget }}" class="text-decoration-none">
-                        {{-- Logo replaces text --}}
-                        <img src="{{ asset('images/logo.svg') }}" alt="Logo" height="50">
+                        <img src="{{ asset('images/logo.svg') }}" alt="Logo" height="40">
                     </a>
                 @else
                     {{-- Static logo --}}
-                    <img src="{{ asset('images/logo.svg') }}" alt="Logo" height="50">
+                    <img src="{{ asset('images/logo.svg') }}" alt="Logo" height="40">
                 @endif
             </div>
             <nav aria-label="Primary navigation">
