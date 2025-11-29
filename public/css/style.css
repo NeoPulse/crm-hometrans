@@ -10,6 +10,12 @@ body {
     padding-top: 12px;
 }
 
+.navbar .nav-link.active {
+    font-weight: 600;
+    color: var(--bs-primary) !important;
+    border-bottom: 2px solid var(--bs-primary);
+}
+
 
 .caseShow__participantName {
     max-width: 90px;
