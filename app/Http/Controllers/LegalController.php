@@ -266,16 +266,18 @@ class LegalController extends Controller
             $imageStream = (string) $image->toJpeg(85);
 
             // Persist the processed file to the public storage disk with a predictable path.
-            $filename = 'avatars/legal-' . $legal->id . '.jpg';
-            Storage::disk('public')->put($filename, $imageStream);
+            $filename = 'legal-' . $legal->id . '.jpg';
+            $storagePath = 'avatars/' . $filename;
+            Storage::disk('public')->put($storagePath, $imageStream);
 
             // Remove any older avatar stored for this user to avoid orphaned files.
-            if ($legal->avatar_path && $legal->avatar_path !== 'storage/' . $filename) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $legal->avatar_path));
+            $existingFilename = $legal->avatar_path ? basename($legal->avatar_path) : null;
+            if ($existingFilename && $existingFilename !== $filename) {
+                Storage::disk('public')->delete('avatars/' . $existingFilename);
             }
 
             // Persist the new avatar path to the user record for display.
-            $legal->avatar_path = 'storage/' . $filename;
+            $legal->avatar_path = $filename;
             $legal->save();
         }
 
