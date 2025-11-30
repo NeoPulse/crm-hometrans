@@ -8,11 +8,11 @@
 
     <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
 
-    <!-- Load fonts for consistent typography. -->
+    {{-- Load fonts for consistent typography. --}}
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
-    <!-- Bootstrap 5 styles and custom overrides. -->
+    {{-- Bootstrap 5 styles and custom overrides.--}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
@@ -21,12 +21,12 @@
 <div class="d-flex flex-column min-vh-100">
     @include('partials.header')
 
-    <!-- Page content container. -->
+    {{-- Page content container.--}}
     <main class="container py-4 flex-grow-1">
         @yield('content')
     </main>
 
-    <!-- Unified site footer. -->
+    {{-- Unified site footer. --}}
     <footer class="bg-white border-top py-3 mt-auto">
         <div class="container text-center text-muted small">
             &copy; {{ date("Y") }} <a class="text-dark" href="https://hometrans.uk/" target="_blank">HomeTrans</a> CRM. All content is private.
@@ -34,9 +34,7 @@
     </footer>
 </div>
 
-<!-- Bootstrap JS bundle for interactivity. -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Chart.js placeholder for future charts. -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 @stack('scripts')

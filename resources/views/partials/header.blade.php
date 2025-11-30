@@ -9,7 +9,7 @@
     $isAdmin = $user && $user->role === 'admin';
     $isLegal = $user && $user->role === 'legal';
     $isClient = $user && $user->role === 'client';
-    $casesRoute = $isLegal ? route('casemanager.legal') : route('casemanager.index');
+    $casesRoute = ($isLegal || $isClient) ? route('casemanager.list') : route('casemanager.index');
     $brandTarget = $isAdmin ? route('dashboard') : ($isAuthenticated ? $casesRoute : null);
 
     // Build a role-aware navigation definition to keep visibility rules concise.
@@ -32,8 +32,8 @@
 @endphp
 
 <div class="bg-white border-bottom shadow-sm">
-    <div class="container py-3">
-        <!-- Responsive navigation that collapses to a burger on md screens and below. -->
+    <div class="container py-1">
+        {{-- Responsive navigation that collapses to a burger on md screens and below. --}}
         <nav class="navbar navbar-expand-lg navbar-light" aria-label="Primary navigation">
             <div class="d-flex align-items-center">
                 @if($brandTarget)
@@ -49,7 +49,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="primaryNavbar">
-                <!-- Render the navigation items appropriate for the current user role. -->
+                {{-- Render the navigation items appropriate for the current user role.--}}
                 <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2 mt-3 mt-lg-0">
                     @foreach($navLinks as $link)
                         <li class="nav-item">

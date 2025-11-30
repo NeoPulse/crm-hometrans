@@ -62,9 +62,15 @@
                                                 $userLink = route('clients.edit', $log->user_id);
                                             } elseif ($log->user_role === 'legal') {
                                                 $userLink = route('legals.edit', $log->user_id);
+                                            } elseif ($log->user_role === 'admin') {
+                                                $userLink = '';
                                             }
                                         @endphp
-                                        <a href="{{ $userLink }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-none">{{ $log->user_name ?? 'User' }}</a>
+                                        @if ($log->user_role === 'admin')
+                                            {{ $log->user_name }}
+                                        @else
+                                            <a href="{{ $userLink }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-none">{{ $log->user_name ?? 'User' }}</a>
+                                        @endif
                                     @else
                                         <span class="fw-semibold">System</span>
                                     @endif

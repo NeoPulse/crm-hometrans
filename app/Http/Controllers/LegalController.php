@@ -26,7 +26,7 @@ class LegalController extends Controller
     {
         // Restrict access to administrators to protect solicitor data.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can access legals.');
+            abort(403, 'Access denied');
         }
 
         // Read query parameters to manage status filter, search term, and sorting order.
@@ -104,7 +104,7 @@ class LegalController extends Controller
     {
         // Ensure only administrators can create solicitor accounts.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can add legals.');
+            abort(403, 'Access denied');
         }
 
         // Generate a unique email and secure password for the new solicitor.
@@ -155,7 +155,7 @@ class LegalController extends Controller
     {
         // Restrict access to administrator users and confirm the legal role.
         if ($request->user()->role !== 'admin' || $legal->role !== 'legal') {
-            abort(403, 'Only administrators can open legal cards.');
+            abort(403, 'Access denied');
         }
 
         // Load profile and attention data along with associated cases for display.
@@ -201,7 +201,7 @@ class LegalController extends Controller
     {
         // Enforce administrator-only modification and role verification.
         if ($request->user()->role !== 'admin' || $legal->role !== 'legal') {
-            abort(403, 'Only administrators can update legals.');
+            abort(403, 'Access denied');
         }
 
         // Validate inputs including required activation flag, person, and email fields.
@@ -296,11 +296,11 @@ class LegalController extends Controller
     {
         // Only administrators can reset passwords for solicitors.
         if ($request->user()->role !== 'admin' || $legal->role !== 'legal') {
-            abort(403, 'Only administrators can reset legal passwords.');
+            abort(403, 'Access denied');
         }
 
         // Create and save a new secure password.
-        $newPassword = Str::random(20);
+        $newPassword = Str::random(8);
         $legal->password = Hash::make($newPassword);
         $legal->save();
 
@@ -331,7 +331,7 @@ class LegalController extends Controller
     {
         // Only administrators may send credential emails and only to solicitor accounts.
         if ($request->user()->role !== 'admin' || $legal->role !== 'legal') {
-            abort(403, 'Only administrators can email legal credentials.');
+            abort(403, 'Access denied');
         }
 
         // Validate that a password value is present for transmission.
@@ -340,12 +340,14 @@ class LegalController extends Controller
         ]);
 
         // Ensure the password matches the most recently generated one for accuracy.
+        /*
         $sessionPassword = $request->session()->get('generated_password');
         if ($sessionPassword !== $validated['password']) {
             return redirect()
                 ->route('legals.edit', $legal)
                 ->withErrors('Please generate a new password before sending credentials.');
         }
+        */
 
         // Send the solicitor credentials via email with the legal-specific template.
         Mail::to($legal->email)->send(new LegalCredentialsMail($legal, $validated['password'], route('login')));

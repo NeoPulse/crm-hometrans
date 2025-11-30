@@ -57,8 +57,10 @@
             <form method="POST" action="{{ route('clients.credentials', $client) }}" class="mt-3 d-flex align-items-center gap-2 flex-wrap">
                 @csrf
                 <input type="hidden" name="password" value="{{ $generatedPassword }}">
-                <button type="submit" class="btn btn-primary">Send access email</button>
-                <span class="text-muted small">The email will include the login URL, email, and the generated password above.</span>
+                @if (session('status') == "New password generated successfully.")
+                    <button type="submit" class="btn btn-primary">Send access email</button>
+                    <span class="text-muted small">The email will include the login URL, email, and the generated password above.</span>
+                @endif
             </form>
         </div>
     @endif

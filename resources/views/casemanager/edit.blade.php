@@ -10,7 +10,7 @@
         <a class="btn btn-outline-secondary" href="{{ route('cases.show', $case) }}" target="_blank" rel="noopener">Show case</a>
     </div>
 
-    <!-- Status and validation feedback for administrator actions. -->
+    {{--    <!-- Status and validation feedback for administrator actions. -->--}}
     @if ($errors->any())
         <div class="alert alert-danger">{{ $errors->first() }}</div>
     @endif
@@ -20,7 +20,7 @@
 
     <div class="row g-4">
         <div class="col-12 col-lg-6">
-            <!-- Participant assignment form covering both sell and buy sides. -->
+            {{-- Participant assignment form covering both sell and buy sides. --}}
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h2 class="h5 mb-3">Participants</h2>
@@ -35,7 +35,7 @@
                             <input type="text" class="form-control user-search" data-role="legal" data-target="sell-legal-results" data-hidden="sell_legal_id" id="sell_legal_display" value="{{ $case->sellLegal?->name }}" placeholder="Type ID or name">
                             <div class="form-text">
                                 @if($case->sellLegal)
-                                    <a href="/users/{{ $case->sellLegal->id }}/edit" class="text-decoration-none">{{ $case->sellLegal->name }}</a>
+                                    <a href="{{ route('legals.edit', $case->sellLegal->id) }}" target="_blank" class="text-decoration-none">{{ $case->sellLegal->name }}</a>
                                 @else
                                     No sell legal assigned
                                 @endif
@@ -48,7 +48,7 @@
                             <input type="text" class="form-control user-search" data-role="client" data-target="sell-client-results" data-hidden="sell_client_id" id="sell_client_display" value="{{ $case->sellClient?->name }}" placeholder="Type ID or name">
                             <div class="form-text">
                                 @if($case->sellClient)
-                                    <a href="/users/{{ $case->sellClient->id }}/edit" class="text-decoration-none">{{ $case->sellClient->name }}</a>
+                                    <a href="{{ route('clients.edit', $case->sellClient->id) }}" target="_blank" class="text-decoration-none">{{ $case->sellClient->name }}</a>
                                 @else
                                     No sell client assigned
                                 @endif
@@ -64,7 +64,7 @@
                             <input type="text" class="form-control user-search" data-role="legal" data-target="buy-legal-results" data-hidden="buy_legal_id" id="buy_legal_display" value="{{ $case->buyLegal?->name }}" placeholder="Type ID or name">
                             <div class="form-text">
                                 @if($case->buyLegal)
-                                    <a href="/users/{{ $case->buyLegal->id }}/edit" class="text-decoration-none">{{ $case->buyLegal->name }}</a>
+                                    <a href="{{ route('legals.edit', $case->buyLegal->id) }}" target="_blank" class="text-decoration-none">{{ $case->buyLegal->name }}</a>
                                 @else
                                     No buy legal assigned
                                 @endif
@@ -77,7 +77,7 @@
                             <input type="text" class="form-control user-search" data-role="client" data-target="buy-client-results" data-hidden="buy_client_id" id="buy_client_display" value="{{ $case->buyClient?->name }}" placeholder="Type ID or name">
                             <div class="form-text">
                                 @if($case->buyClient)
-                                    <a href="/users/{{ $case->buyClient->id }}/edit" class="text-decoration-none">{{ $case->buyClient->name }}</a>
+                                    <a href="{{ route('clients.edit', $case->buyClient->id) }}" target="_blank" class="text-decoration-none">{{ $case->buyClient->name }}</a>
                                 @else
                                     No buy client assigned
                                 @endif
@@ -92,7 +92,7 @@
             </div>
         </div>
         <div class="col-12 col-lg-6">
-            <!-- Attention toggle tools and main case details form. -->
+            {{-- Attention toggle tools and main case details form. --}}
             <div class="card shadow-sm mb-4">
                 <div class="card-body d-flex align-items-center justify-content-between">
                     <div>
@@ -156,16 +156,9 @@
         </div>
     </div>
 
-    <!-- Public link placeholder and activity log viewer. -->
+    {{--     Public link placeholder and activity log viewer. --}}
     <div class="card shadow-sm mt-4">
         <div class="card-body">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
-                <div>
-                    <h2 class="h6 mb-1">Public link</h2>
-                    <p class="text-muted mb-0">Shareable placeholder URL for progress-stage guests.</p>
-                </div>
-                <a href="https://domain.com/#" target="_blank" rel="noopener" class="btn btn-outline-primary">https://domain.com/#</a>
-            </div>
             <div>
                 <a href="#" id="toggle-logs" class="text-decoration-none">Show case logs</a>
             </div>

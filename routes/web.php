@@ -21,8 +21,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         // Redirect authenticated users to their respective workspace based on role.
-        if (auth()->user()->role === 'legal') {
-            return redirect()->route('casemanager.legal');
+        if (auth()->user()->role === 'legal' || auth()->user()->role === 'client') {
+            return redirect()->route('casemanager.list');
         }
 
         // Admins default to the dashboard overview.
@@ -42,7 +42,7 @@ Route::middleware('auth')->group(function () {
     // Case manager endpoints for admin and legal users.
     Route::get('/casemanager', [CaseManagerController::class, 'index'])->name('casemanager.index');
     Route::post('/casemanager', [CaseManagerController::class, 'store'])->name('casemanager.store');
-    Route::get('/casemanager/legal', [CaseManagerController::class, 'legalIndex'])->name('casemanager.legal');
+    Route::get('/casemanager/list', [CaseManagerController::class, 'listIndex'])->name('casemanager.list');
     Route::get('/casemanager/{caseFile}/edit', [CaseManagerController::class, 'edit'])->name('casemanager.edit');
     Route::post('/casemanager/{caseFile}/participants', [CaseManagerController::class, 'updateParticipants'])->name('casemanager.participants');
     Route::post('/casemanager/{caseFile}/details', [CaseManagerController::class, 'updateDetails'])->name('casemanager.details');

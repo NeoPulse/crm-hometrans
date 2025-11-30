@@ -4,7 +4,7 @@
 @section('content')
     <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-6">
-            <!-- Card containing avatar and password update options for the current user. -->
+            {{-- Card containing avatar and password update options for the current user. --}}
             <div class="card shadow-sm">
                 <div class="card-header d-flex align-items-center justify-content-between">
                     <div class="fw-bold">Profile</div>
@@ -23,35 +23,39 @@
                         </div>
                     @endif
 
-                    <h3 class="py-2">Upload avatar</h3>
+                    @php $isClient = optional($user)->role === 'client'; @endphp
 
-                    <!-- Avatar upload form with preview and helper text. -->
-                    <form method="POST" action="{{ route('profile.avatar') }}" class="needs-validation pb-3" novalidate enctype="multipart/form-data">
-                        @csrf
-                        @php
-                            $avatarFilename = $user->avatar_path ? basename($user->avatar_path) : null;
-                            $avatarPath = $avatarFilename
-                                ? asset('storage/avatars/' . $avatarFilename)
-                                : asset('images/avatar-placeholder.svg');
-                        @endphp
-                        <div class="d-flex align-items-center gap-3 mb-3 p-3 border rounded">
-                            <img src="{{ $avatarPath . '?v=' . time() }}" alt="Profile avatar" class="rounded-circle avatar-50">
-                            <div class="flex-grow-1">
-                                <input type="file" name="avatar" id="avatar" class="form-control @error('avatar') is-invalid @enderror" accept="image/*" required>
-                                @error('avatar')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                    @if (!$isClient)
+                        <h3 class="py-2">Upload avatar</h3>
+
+                        {{-- Avatar upload form with preview and helper text. --}}
+                        <form method="POST" action="{{ route('profile.avatar') }}" class="needs-validation pb-3" novalidate enctype="multipart/form-data">
+                            @csrf
+                            @php
+                                $avatarFilename = $user->avatar_path ? basename($user->avatar_path) : null;
+                                $avatarPath = $avatarFilename
+                                    ? asset('storage/avatars/' . $avatarFilename)
+                                    : asset('images/avatar-placeholder.svg');
+                            @endphp
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3 border rounded">
+                                <img src="{{ $avatarPath . '?v=' . time() }}" alt="Profile avatar" class="rounded-circle avatar-50">
+                                <div class="flex-grow-1">
+                                    <input type="file" name="avatar" id="avatar" class="form-control @error('avatar') is-invalid @enderror" accept="image/*" required>
+                                    @error('avatar')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button type="reset" class="btn btn-outline-secondary">Clear</button>
-                            <button type="submit" class="btn btn-primary">Update Avatar</button>
-                        </div>
-                    </form>
+                            <div class="d-flex gap-2">
+                                <button type="reset" class="btn btn-outline-secondary">Clear</button>
+                                <button type="submit" class="btn btn-primary">Update Avatar</button>
+                            </div>
+                        </form>
 
-                    <hr>
+                        <hr>
+                    @endif
 
-                    <!-- Password update form kept separate from avatar handling. -->
+                    {{-- Password update form kept separate from avatar handling. --}}
                     <h3 class="pt-4 pb-2">Change password</h3>
                     <form method="POST" action="{{ route('profile.password') }}" class="needs-validation" novalidate>
                         @csrf

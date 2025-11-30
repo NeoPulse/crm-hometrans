@@ -21,7 +21,7 @@ class CaseManagerController extends Controller
     {
         // Ensure only administrators can access the full case manager.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can open the case manager.');
+            abort(403, 'Access denied');
         }
 
         // Prepare filter parameters pulled from the query string with sensible defaults.
@@ -84,25 +84,22 @@ class CaseManagerController extends Controller
     /**
      * Show the legal user's case list limited to their progress cases.
      */
-    public function legalIndex(Request $request): Response
+    public function listIndex(Request $request): Response
     {
-        // Only legal users may open their slim case table.
-        if ($request->user()->role !== 'legal') {
-            abort(403, 'Only legal users can access this workspace.');
-        }
-
         // Build the query restricting cases to those where the legal is assigned and in progress.
         $cases = CaseFile::query()
             ->where('status', 'progress')
             ->where(function ($inner) use ($request) {
                 $inner->where('sell_legal_id', $request->user()->id)
-                    ->orWhere('buy_legal_id', $request->user()->id);
+                    ->orWhere('buy_legal_id', $request->user()->id)
+                    ->orWhere('sell_client_id', $request->user()->id)
+                    ->orWhere('buy_client_id', $request->user()->id);
             })
             ->orderByDesc('created_at')
             ->paginate(20);
 
         // Render the legal home table without edit controls.
-        return response()->view('casemanager.legal', [
+        return response()->view('casemanager.list', [
             'cases' => $cases,
         ]);
     }
@@ -114,7 +111,7 @@ class CaseManagerController extends Controller
     {
         // Restrict creation to administrators.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can create cases.');
+            abort(403, 'Access denied');
         }
 
         // Validate the incoming postal code ensuring no spaces are present.
@@ -167,7 +164,7 @@ class CaseManagerController extends Controller
     {
         // Ensure only administrators can reach the editing interface.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can edit cases.');
+            abort(403, 'Access denied');
         }
 
         // Collect related identifiers to surface logs for the case, its stages, tasks, and chat messages.
@@ -219,7 +216,7 @@ class CaseManagerController extends Controller
     {
         // Only administrators may modify participants.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can update participants.');
+            abort(403, 'Access denied');
         }
 
         // Validate participant fields ensuring they reference expected roles.
@@ -313,7 +310,7 @@ class CaseManagerController extends Controller
     {
         // Only administrators can adjust notification flags.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can manage attention flags.');
+            abort(403, 'Access denied');
         }
 
         // Validate the requested attention type.
@@ -365,7 +362,7 @@ class CaseManagerController extends Controller
     {
         // Restrict search to administrators for participant assignment.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can search users.');
+            abort(403, 'Access denied');
         }
 
         // Validate incoming query parameters for safety.

@@ -18,11 +18,6 @@ class ProfileController extends Controller
      */
     public function show(Request $request): Response
     {
-        // Abort early when the authenticated user does not have permission for the profile area.
-        if (! in_array($request->user()->role, ['admin', 'legal'], true)) {
-            abort(403, 'Only administrators and legal users can access the profile area.');
-        }
-
         // Render the profile form that allows password changes for the current user.
         return response()->view('profile.index', [
             'user' => $request->user(),
@@ -34,11 +29,6 @@ class ProfileController extends Controller
      */
     public function updatePassword(Request $request): RedirectResponse
     {
-        // Ensure only administrators and legal users can process password updates.
-        if (! in_array($request->user()->role, ['admin', 'legal'], true)) {
-            abort(403, 'Only administrators and legal users can update their profile.');
-        }
-
         // Validate the new password separately from avatar uploads to keep intent clear.
         $validated = $request->validate([
             'password' => ['required', 'string', 'min:8', 'confirmed'],
@@ -69,7 +59,7 @@ class ProfileController extends Controller
     {
         // Ensure only administrators and legal users can process avatar updates.
         if (! in_array($request->user()->role, ['admin', 'legal'], true)) {
-            abort(403, 'Only administrators and legal users can update their profile.');
+            abort(403, 'Access denied');
         }
 
         // Validate avatar uploads separately to simplify form handling.

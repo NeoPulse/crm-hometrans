@@ -5,7 +5,7 @@
 </button>
 --}}
 
-<!-- Modal-style overlay for the chat panel. -->
+{{-- Modal-style overlay for the chat panel. --}}
 <div id="case-chat-overlay" class="case-chat-overlay d-none">
     <div class="case-chat-modal card shadow-lg">
         <div class="card-header d-flex align-items-center justify-content-between">

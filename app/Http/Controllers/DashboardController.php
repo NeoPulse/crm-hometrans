@@ -17,7 +17,7 @@ class DashboardController extends Controller
     {
         // Restrict access strictly to administrators to protect sensitive analytics.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can access the dashboard.');
+            abort(403, 'Access denied');
         }
 
         // Prepare the date range for client registrations (last 30 days inclusive).

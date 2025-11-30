@@ -15,7 +15,7 @@ class ActivityLogController extends Controller
     {
         // Limit access strictly to administrators to protect audit information.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can view activity logs.');
+            abort(403, 'Access denied');
         }
 
         // Capture filter inputs for search keywords and action types.

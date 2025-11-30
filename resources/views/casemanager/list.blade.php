@@ -1,11 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Informational header reminding legal users about their limited view. -->
-    <div class="alert alert-info">You are viewing cases assigned to you that are currently in progress.</div>
 
-    <!-- Table of legal-assigned cases with minimal columns. -->
-    <div class="card shadow-sm">
+    {{-- Table of legal-assigned cases with minimal columns. --}}
+    <div class="card shadow-sm col-lg-6 mx-auto">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-striped align-middle mb-0">
@@ -37,7 +35,7 @@
             </div>
         </div>
         <div class="card-footer">
-            <!-- Paginate results for legal users for consistency. -->
+            {{-- Paginate results for legal users for consistency. --}}
             {{ $cases->links() }}
         </div>
     </div>

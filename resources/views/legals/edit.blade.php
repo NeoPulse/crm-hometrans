@@ -35,8 +35,10 @@
             <form method="POST" action="{{ route('legals.credentials', $legal) }}" class="mt-3 d-flex align-items-center gap-2 flex-wrap">
                 @csrf
                 <input type="hidden" name="password" value="{{ $generatedPassword }}">
-                <button type="submit" class="btn btn-primary">Send access email</button>
-                <span class="text-muted small">The email will include the login URL, email, and the generated password above.</span>
+                @if (session('status') == "New password generated successfully.")
+                    <button type="submit" class="btn btn-primary">Send access email</button>
+                    <span class="text-muted small">The email will include the login URL, email, and the generated password above.</span>
+                @endif
             </form>
         </div>
     @endif
@@ -58,7 +60,7 @@
                                 : asset('images/avatar-placeholder.svg');
                         @endphp
                         <div class="d-flex align-items-center gap-3 mb-3 p-3 border rounded">
-                            <img src="{{ $avatarPath }}" alt="Legal avatar" class="rounded-circle avatar-50">
+                            <img src="{{ $avatarPath . '?v=' . time() }}" alt="Legal avatar" class="rounded-circle avatar-50">
                             <div class="flex-grow-1">
                                 <label for="avatar" class="form-label">Avatar</label>
                                 <input type="file" name="avatar" id="avatar" class="form-control @error('avatar') is-invalid @enderror" accept="image/*">

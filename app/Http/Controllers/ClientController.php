@@ -24,7 +24,7 @@ class ClientController extends Controller
     {
         // Only administrators are allowed to manage the client registry.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can access.');
+            abort(403, 'Access denied');
         }
 
         // Capture filter and sorting inputs with safe defaults.
@@ -104,7 +104,7 @@ class ClientController extends Controller
     {
         // Restrict creation to administrators.
         if ($request->user()->role !== 'admin') {
-            abort(403, 'Only administrators can add clients.');
+            abort(403, 'Access denied');
         }
 
         // Generate unique email and secure password for the new client.
@@ -154,7 +154,7 @@ class ClientController extends Controller
     {
         // Confirm the client role and administrator access.
         if ($request->user()->role !== 'admin' || $client->role !== 'client') {
-            abort(403, 'Only administrators can open client cards.');
+            abort(403, 'Access denied');
         }
 
         // Load required relations and related data.
@@ -178,10 +178,22 @@ class ClientController extends Controller
             ->paginate(20, ['*'], 'cases_page');
 
         // Fetch recent activity logs tied to this user.
+        /*
         $logs = DB::table('activity_logs')
             ->leftJoin('users', 'activity_logs.user_id', '=', 'users.id')
             ->where('target_type', 'user')
             ->where('target_id', $client->id)
+            ->orderByDesc('activity_logs.created_at')
+            ->limit(50)
+            ->get(['activity_logs.*', 'users.name as user_name']);
+        */
+        $logs = DB::table('activity_logs')
+            ->leftJoin('users', 'activity_logs.user_id', '=', 'users.id')
+            ->where(function ($query) use ($client) {
+                $query->where(function ($targetQuery) use ($client) {
+                    $targetQuery->where('target_type', 'client')->where('target_id', $client->id);
+                })->orWhere('activity_logs.user_id', $client->id);
+            })
             ->orderByDesc('activity_logs.created_at')
             ->limit(50)
             ->get(['activity_logs.*', 'users.name as user_name']);
@@ -202,7 +214,7 @@ class ClientController extends Controller
     {
         // Enforce administrator-only modification and validate client role.
         if ($request->user()->role !== 'admin' || $client->role !== 'client') {
-            abort(403, 'Only administrators can update clients.');
+            abort(403, 'Access denied');
         }
 
         // Validate incoming payload with required email while keeping credentials immutable for clients.
@@ -265,11 +277,11 @@ class ClientController extends Controller
     {
         // Only administrators can reset client credentials and the target must be a client.
         if ($request->user()->role !== 'admin' || $client->role !== 'client') {
-            abort(403, 'Only administrators can reset client passwords.');
+            abort(403, 'Access denied');
         }
 
         // Create and persist a fresh password for the client account.
-        $newPassword = Str::random(20);
+        $newPassword = Str::random(8);
         $client->password = Hash::make($newPassword);
         $client->save();
 
@@ -300,7 +312,7 @@ class ClientController extends Controller
     {
         // Enforce administrator access and confirm the target is a client.
         if ($request->user()->role !== 'admin' || $client->role !== 'client') {
-            abort(403, 'Only administrators can email client credentials.');
+            abort(403, 'Access denied');
         }
 
         // Require the password to be present so we can send the exact generated value.
@@ -310,11 +322,11 @@ class ClientController extends Controller
 
         // Ensure the password originates from the latest generation to avoid stale credentials.
         $sessionPassword = $request->session()->get('generated_password');
-        if ($sessionPassword !== $validated['password']) {
-            return redirect()
-                ->route('clients.edit', $client)
-                ->withErrors('Please generate a new password before sending credentials.');
-        }
+        //if ($sessionPassword !== $validated['password']) {
+        //    return redirect()
+        //        ->route('clients.edit', $client)
+        //        ->withErrors('Please generate a new password before sending credentials.');
+        //}
 
         // Dispatch the email with the client-specific template and data.
         Mail::to($client->email)->send(new ClientCredentialsMail($client, $validated['password'], route('login')));
@@ -346,7 +358,7 @@ class ClientController extends Controller
     {
         // Restrict deletion to administrators and confirm client role.
         if ($request->user()->role !== 'admin' || $client->role !== 'client') {
-            abort(403, 'Only administrators can delete clients.');
+            abort(403, 'Access denied');
         }
 
         // Block deletion when the client participates in any case to preserve case integrity.
@@ -389,7 +401,7 @@ class ClientController extends Controller
     {
         // Ensure administrative control and valid role.
         if ($request->user()->role !== 'admin' || $client->role !== 'client') {
-            abort(403, 'Only administrators can manage client attentions.');
+            abort(403, 'Access denied');
         }
 
         // Validate supported attention types.

@@ -42,13 +42,6 @@ class AuthController extends Controller
             ])->withInput($request->only('email'));
         }
 
-        // Prevent client users from signing in via the personal login form.
-        if ($user->role === 'client') {
-            return back()->withErrors([
-                'email' => 'Clients cannot sign in through this form.',
-            ])->withInput($request->only('email'));
-        }
-
         // Verify the provided password against the stored hash for the user.
         if (! Hash::check($validated['password'], $user->password)) {
             return back()->withErrors([
