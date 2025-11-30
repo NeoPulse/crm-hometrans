@@ -99,19 +99,21 @@ class ProfileController extends Controller
         $imageStream = (string) $image->toJpeg(85);
 
         // Build a deterministic filename per user to avoid clutter and replace previous images.
-        $filename = 'avatars/user-' . $request->user()->id . '.jpg';
-        Storage::disk('public')->put($filename, $imageStream);
+        $filename = 'user-' . $request->user()->id . '.jpg';
+        $storagePath = 'avatars/' . $filename;
+        Storage::disk('public')->put($storagePath, $imageStream);
 
         // Remove an old avatar file when it differs from the new one to conserve space.
-        if ($request->user()->avatar_path && $request->user()->avatar_path !== 'storage/' . $filename) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $request->user()->avatar_path));
+        $existingFilename = $request->user()->avatar_path ? basename($request->user()->avatar_path) : null;
+        if ($existingFilename && $existingFilename !== $filename) {
+            Storage::disk('public')->delete('avatars/' . $existingFilename);
         }
 
         // Update the user record with the publicly accessible storage path.
         DB::table('users')
             ->where('id', $request->user()->id)
             ->update([
-                'avatar_path' => 'storage/' . $filename,
+                'avatar_path' => $filename,
                 'updated_at' => now(),
             ]);
 

@@ -44,8 +44,11 @@
                         {{-- Avatar preview and upload control for the legal profile. --}}
                         @php
                             // Resolve a reliable avatar path, falling back to a placeholder when none exists.
-                            $avatarOnDisk = $legal->avatar_path && \Illuminate\Support\Facades\Storage::exists(str_replace('storage/', '', $legal->avatar_path));
-                            $avatarPath = $avatarOnDisk ? asset($legal->avatar_path) : asset('images/avatar-placeholder.svg');
+                            $avatarFilename = $legal->avatar_path ? basename($legal->avatar_path) : null;
+                            $avatarOnDisk = $avatarFilename && \Illuminate\Support\Facades\Storage::disk('public')->exists('avatars/' . $avatarFilename);
+                            $avatarPath = $avatarOnDisk
+                                ? asset('storage/avatars/' . $avatarFilename)
+                                : asset('images/avatar-placeholder.svg');
                         @endphp
                         <div class="d-flex align-items-center gap-3 mb-3 p-3 border rounded">
                             <img src="{{ $avatarPath }}" alt="Legal avatar" class="rounded-circle avatar-50">

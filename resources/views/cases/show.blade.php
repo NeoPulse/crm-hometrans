@@ -27,8 +27,9 @@
 
                         $label = $participant['label'] ?? '';
 
-                        $avatar = $user->avatar_path
-                            ? asset($user->avatar_path)
+                        $avatarFilename = $user->avatar_path ? basename($user->avatar_path) : null;
+                        $avatar = $avatarFilename
+                            ? asset('storage/avatars/' . $avatarFilename)
                             : asset('images/avatar-placeholder.svg');
 
                         $popoverLines = [];

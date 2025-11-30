@@ -29,7 +29,10 @@
                     <form method="POST" action="{{ route('profile.avatar') }}" class="needs-validation pb-3" novalidate enctype="multipart/form-data">
                         @csrf
                         @php
-                            $avatarPath = $user->avatar_path ? asset($user->avatar_path) : asset('images/avatar-placeholder.svg');
+                            $avatarFilename = $user->avatar_path ? basename($user->avatar_path) : null;
+                            $avatarPath = $avatarFilename
+                                ? asset('storage/avatars/' . $avatarFilename)
+                                : asset('images/avatar-placeholder.svg');
                         @endphp
                         <div class="d-flex align-items-center gap-3 mb-3 p-3 border rounded">
                             <img src="{{ $avatarPath . '?v=' . time() }}" alt="Profile avatar" class="rounded-circle avatar-50">
