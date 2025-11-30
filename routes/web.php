@@ -72,6 +72,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
     Route::post('/clients/{client}/attention/{type}', [ClientController::class, 'toggleAttention'])->name('clients.attention');
+    Route::post('/clients/{client}/password', [ClientController::class, 'generatePassword'])->name('clients.password');
+    Route::post('/clients/{client}/credentials-email', [ClientController::class, 'sendCredentials'])->name('clients.credentials');
 
     // Legal management endpoints for administrators.
     Route::get('/legals', [LegalController::class, 'index'])->name('legals.index');
@@ -79,6 +81,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/legals/{legal}/edit', [LegalController::class, 'edit'])->name('legals.edit');
     Route::post('/legals/{legal}', [LegalController::class, 'update'])->name('legals.update');
     Route::post('/legals/{legal}/password', [LegalController::class, 'generatePassword'])->name('legals.password');
+    Route::post('/legals/{legal}/credentials-email', [LegalController::class, 'sendCredentials'])->name('legals.credentials');
 
     // Activity log listing for administrators.
     Route::get('/logs', [ActivityLogController::class, 'index'])->name('logs.index');

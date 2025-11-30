@@ -31,6 +31,13 @@
                 <li><strong>Email:</strong> {{ $legal->email }}</li>
                 <li><strong>Password:</strong> <code>{{ $generatedPassword }}</code></li>
             </ul>
+            {{-- Provide a direct action to email the refreshed credentials to the solicitor. --}}
+            <form method="POST" action="{{ route('legals.credentials', $legal) }}" class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+                @csrf
+                <input type="hidden" name="password" value="{{ $generatedPassword }}">
+                <button type="submit" class="btn btn-primary">Send access email</button>
+                <span class="text-muted small">The email will include the login URL, email, and the generated password above.</span>
+            </form>
         </div>
     @endif
 

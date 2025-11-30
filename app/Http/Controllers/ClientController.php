@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attention;
+use App\Mail\ClientCredentialsMail;
 use App\Models\CaseFile;
 use App\Models\ClientProfile;
 use App\Models\User;
@@ -10,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -189,6 +191,7 @@ class ClientController extends Controller
             'client' => $client,
             'relatedCases' => $relatedCases,
             'logs' => $logs,
+            'generatedPassword' => session('generated_password'),
         ]);
     }
 
@@ -253,6 +256,87 @@ class ClientController extends Controller
 
         // Return to the card with success feedback.
         return redirect()->route('clients.edit', $client)->with('status', 'Client saved successfully.');
+    }
+
+    /**
+     * Generate a secure password for the client and surface the credentials.
+     */
+    public function generatePassword(Request $request, User $client): RedirectResponse
+    {
+        // Only administrators can reset client credentials and the target must be a client.
+        if ($request->user()->role !== 'admin' || $client->role !== 'client') {
+            abort(403, 'Only administrators can reset client passwords.');
+        }
+
+        // Create and persist a fresh password for the client account.
+        $newPassword = Str::random(20);
+        $client->password = Hash::make($newPassword);
+        $client->save();
+
+        // Log the reset event for auditing purposes.
+        DB::table('activity_logs')->insert([
+            'user_id' => $request->user()->id,
+            'action' => 'password_reset',
+            'target_type' => 'client',
+            'target_id' => $client->id,
+            'location' => 'client card',
+            'details' => 'Generated a new password for the client.',
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Redirect back with the new password so it can be communicated or emailed.
+        return redirect()
+            ->route('clients.edit', $client)
+            ->with('generated_password', $newPassword)
+            ->with('status', 'New password generated successfully.');
+    }
+
+    /**
+     * Send the refreshed credentials to the client via email.
+     */
+    public function sendCredentials(Request $request, User $client): RedirectResponse
+    {
+        // Enforce administrator access and confirm the target is a client.
+        if ($request->user()->role !== 'admin' || $client->role !== 'client') {
+            abort(403, 'Only administrators can email client credentials.');
+        }
+
+        // Require the password to be present so we can send the exact generated value.
+        $validated = $request->validate([
+            'password' => ['required', 'string'],
+        ]);
+
+        // Ensure the password originates from the latest generation to avoid stale credentials.
+        $sessionPassword = $request->session()->get('generated_password');
+        if ($sessionPassword !== $validated['password']) {
+            return redirect()
+                ->route('clients.edit', $client)
+                ->withErrors('Please generate a new password before sending credentials.');
+        }
+
+        // Dispatch the email with the client-specific template and data.
+        Mail::to($client->email)->send(new ClientCredentialsMail($client, $validated['password'], route('login')));
+
+        // Audit the email dispatch for traceability.
+        DB::table('activity_logs')->insert([
+            'user_id' => $request->user()->id,
+            'action' => 'credentials_email',
+            'target_type' => 'client',
+            'target_id' => $client->id,
+            'location' => 'client card',
+            'details' => 'Sent client credentials email.',
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Return to the card while preserving the generated password for re-sending if needed.
+        return redirect()
+            ->route('clients.edit', $client)
+            ->with('generated_password', $validated['password'])
+            ->with('status', 'Access email sent to the client.');
     }
 
     /**

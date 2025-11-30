@@ -30,6 +30,11 @@
                     <i class="bi bi-file-earmark-text fs-4"></i>
                 </button>
             </form>
+            {{-- Trigger to generate a new password for the client. --}}
+            <form method="POST" action="{{ route('clients.password', $client) }}">
+                @csrf
+                <button type="submit" class="btn btn-outline-primary">Generate password</button>
+            </form>
         </div>
     </div>
 
@@ -39,6 +44,23 @@
     @endif
     @if (session('status'))
         <div class="alert alert-success">{{ session('status') }}</div>
+    @endif
+    @if ($generatedPassword)
+        <div class="alert alert-info">
+            <p class="mb-1">A new password has been generated for this client. Share the credentials below:</p>
+            <ul class="mb-0">
+                <li><strong>Login URL:</strong> <a href="{{ route('login') }}" class="text-decoration-none">{{ route('login') }}</a></li>
+                <li><strong>Email:</strong> {{ $client->email }}</li>
+                <li><strong>Password:</strong> <code>{{ $generatedPassword }}</code></li>
+            </ul>
+            {{-- Provide a shortcut to email the credentials to the client. --}}
+            <form method="POST" action="{{ route('clients.credentials', $client) }}" class="mt-3 d-flex align-items-center gap-2 flex-wrap">
+                @csrf
+                <input type="hidden" name="password" value="{{ $generatedPassword }}">
+                <button type="submit" class="btn btn-primary">Send access email</button>
+                <span class="text-muted small">The email will include the login URL, email, and the generated password above.</span>
+            </form>
+        </div>
     @endif
 
     <!-- Client form split into two columns for activation, contact, and notes. -->
