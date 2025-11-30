@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\CaseFile;
 use App\Models\LegalProfile;
 use App\Models\User;
+use App\Mail\LegalCredentialsMail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -320,5 +322,51 @@ class LegalController extends Controller
             ->route('legals.edit', $legal)
             ->with('generated_password', $newPassword)
             ->with('status', 'New password generated successfully.');
+    }
+
+    /**
+     * Email the refreshed credentials to the solicitor using a dedicated template.
+     */
+    public function sendCredentials(Request $request, User $legal): RedirectResponse
+    {
+        // Only administrators may send credential emails and only to solicitor accounts.
+        if ($request->user()->role !== 'admin' || $legal->role !== 'legal') {
+            abort(403, 'Only administrators can email legal credentials.');
+        }
+
+        // Validate that a password value is present for transmission.
+        $validated = $request->validate([
+            'password' => ['required', 'string'],
+        ]);
+
+        // Ensure the password matches the most recently generated one for accuracy.
+        $sessionPassword = $request->session()->get('generated_password');
+        if ($sessionPassword !== $validated['password']) {
+            return redirect()
+                ->route('legals.edit', $legal)
+                ->withErrors('Please generate a new password before sending credentials.');
+        }
+
+        // Send the solicitor credentials via email with the legal-specific template.
+        Mail::to($legal->email)->send(new LegalCredentialsMail($legal, $validated['password'], route('login')));
+
+        // Record the dispatch in the audit log for accountability.
+        DB::table('activity_logs')->insert([
+            'user_id' => $request->user()->id,
+            'action' => 'credentials_email',
+            'target_type' => 'legal',
+            'target_id' => $legal->id,
+            'location' => 'legal card',
+            'details' => 'Sent legal credentials email.',
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Redirect back while keeping the password available for reference.
+        return redirect()
+            ->route('legals.edit', $legal)
+            ->with('generated_password', $validated['password'])
+            ->with('status', 'Access email sent to the legal.');
     }
 }
