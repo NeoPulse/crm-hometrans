@@ -164,15 +164,6 @@ class CaseChatController extends Controller
             abort(404, 'Attachment not found.');
         }
 
-        $this->logAction(
-            $viewer,
-            'download',
-            'chat',
-            $chatMessage->id,
-            "case/{$caseFile->id}/chat/file",
-            'Downloaded a chat attachment.'
-        );
-
         return Storage::download($chatMessage->attachment_path, $chatMessage->attachment_name ?? 'chat-file');
     }
 

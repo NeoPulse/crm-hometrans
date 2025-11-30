@@ -23,19 +23,6 @@ class ProfileController extends Controller
             abort(403, 'Only administrators and legal users can access the profile area.');
         }
 
-        // Log the profile view to the activity log for auditing purposes.
-        DB::table('activity_logs')->insert([
-            'user_id' => $request->user()->id,
-            'action' => 'view',
-            'target_type' => 'profile',
-            'target_id' => $request->user()->id,
-            'location' => 'profile page',
-            'details' => 'Opened the profile page to review account options.',
-            'ip_address' => $request->ip(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
         // Render the profile form that allows password changes for the current user.
         return response()->view('profile.index', [
             'user' => $request->user(),

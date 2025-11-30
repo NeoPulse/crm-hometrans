@@ -85,19 +85,6 @@ class LegalController extends Controller
         // Paginate results to twenty per page and preserve current query state.
         $legals = $query->paginate(20)->appends($request->query());
 
-        // Record the directory view in the audit trail.
-        DB::table('activity_logs')->insert([
-            'user_id' => $request->user()->id,
-            'action' => 'view',
-            'target_type' => 'legal',
-            'target_id' => null,
-            'location' => 'legals index',
-            'details' => 'Viewed legal directory with filters.',
-            'ip_address' => $request->ip(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
         // Render the solicitor list page with filters and current data.
         return response()->view('legals.index', [
             'legals' => $legals,
@@ -184,27 +171,17 @@ class LegalController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20, ['*'], 'cases_page');
 
-        // Gather recent activity logs for this solicitor.
+        // Gather recent activity logs for this solicitor and entries authored by the solicitor.
         $logs = DB::table('activity_logs')
             ->leftJoin('users', 'activity_logs.user_id', '=', 'users.id')
-            ->where('target_type', 'legal')
-            ->where('target_id', $legal->id)
+            ->where(function ($query) use ($legal) {
+                $query->where(function ($targetQuery) use ($legal) {
+                    $targetQuery->where('target_type', 'legal')->where('target_id', $legal->id);
+                })->orWhere('activity_logs.user_id', $legal->id);
+            })
             ->orderByDesc('activity_logs.created_at')
             ->limit(50)
             ->get(['activity_logs.*', 'users.name as user_name']);
-
-        // Log the view action for audit purposes.
-        DB::table('activity_logs')->insert([
-            'user_id' => $request->user()->id,
-            'action' => 'view',
-            'target_type' => 'legal',
-            'target_id' => $legal->id,
-            'location' => 'legal card',
-            'details' => 'Opened the legal card.',
-            'ip_address' => $request->ip(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
 
         // Render the solicitor detail view.
         return response()->view('legals.edit', [

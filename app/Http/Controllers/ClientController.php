@@ -85,19 +85,6 @@ class ClientController extends Controller
         // Paginate with twenty rows per page and preserve query string.
         $clients = $query->paginate(20)->appends($request->query());
 
-        // Record the view action in the audit log.
-        DB::table('activity_logs')->insert([
-            'user_id' => $request->user()->id,
-            'action' => 'view',
-            'target_type' => 'client',
-            'target_id' => null,
-            'location' => 'clients index',
-            'details' => 'Viewed client directory with filters.',
-            'ip_address' => $request->ip(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
         // Render the client list view.
         return response()->view('clients.index', [
             'clients' => $clients,
@@ -196,19 +183,6 @@ class ClientController extends Controller
             ->orderByDesc('activity_logs.created_at')
             ->limit(50)
             ->get(['activity_logs.*', 'users.name as user_name']);
-
-        // Log the view of the client card.
-        DB::table('activity_logs')->insert([
-            'user_id' => $request->user()->id,
-            'action' => 'view',
-            'target_type' => 'client',
-            'target_id' => $client->id,
-            'location' => 'client card',
-            'details' => 'Opened the client card.',
-            'ip_address' => $request->ip(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
 
         // Render the client detail view with related datasets.
         return response()->view('clients.edit', [

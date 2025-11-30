@@ -20,19 +20,6 @@ class DashboardController extends Controller
             abort(403, 'Only administrators can access the dashboard.');
         }
 
-        // Log the dashboard view to provide visibility into administrative activity.
-        DB::table('activity_logs')->insert([
-            'user_id' => $request->user()->id,
-            'action' => 'view',
-            'target_type' => 'dashboard',
-            'target_id' => null,
-            'location' => 'dashboard',
-            'details' => 'Viewed the admin dashboard with metrics.',
-            'ip_address' => $request->ip(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
         // Prepare the date range for client registrations (last 30 days inclusive).
         $today = Carbon::now()->startOfDay();
         $clientsStartDate = $today->copy()->subDays(29);

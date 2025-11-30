@@ -25,7 +25,7 @@ class ActivityLogController extends Controller
         // Build the log query with optional search and action filtering.
         $query = DB::table('activity_logs as logs')
             ->leftJoin('users as users', 'logs.user_id', '=', 'users.id')
-            ->select('logs.*', 'users.name as user_name', 'users.email as user_email')
+            ->select('logs.*', 'users.name as user_name', 'users.role as user_role')
             ->orderByDesc('logs.created_at');
 
         // Apply search conditions when a keyword is provided by the administrator.
@@ -34,7 +34,7 @@ class ActivityLogController extends Controller
                 $innerQuery->where('logs.details', 'like', "%{$search}%")
                     ->orWhere('logs.location', 'like', "%{$search}%")
                     ->orWhere('logs.target_type', 'like', "%{$search}%")
-                    ->orWhere('users.email', 'like', "%{$search}%");
+                    ->orWhere('users.name', 'like', "%{$search}%");
             });
         }
 
@@ -52,19 +52,6 @@ class ActivityLogController extends Controller
             ->distinct()
             ->orderBy('action')
             ->pluck('action');
-
-        // Log the visit to the activity logs page for transparency.
-        DB::table('activity_logs')->insert([
-            'user_id' => $request->user()->id,
-            'action' => 'view',
-            'target_type' => 'activity_logs',
-            'target_id' => null,
-            'location' => 'activity logs page',
-            'details' => 'Reviewed activity logs with filters.',
-            'ip_address' => $request->ip(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
 
         // Render the logs index view with the paginated results and available filters.
         return response()->view('logs.index', [

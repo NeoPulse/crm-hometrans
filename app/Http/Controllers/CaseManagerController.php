@@ -170,11 +170,37 @@ class CaseManagerController extends Controller
             abort(403, 'Only administrators can edit cases.');
         }
 
-        // Retrieve recent activity logs tied to this case for display.
+        // Collect related identifiers to surface logs for the case, its stages, tasks, and chat messages.
+        $stageIds = DB::table('stages')->where('case_id', $caseFile->id)->pluck('id');
+        $taskIds = DB::table('tasks')->whereIn('stage_id', $stageIds)->pluck('id');
+        $chatMessageIds = DB::table('case_chat_messages')->where('case_id', $caseFile->id)->pluck('id');
+
+        // Retrieve recent activity logs tied to this case and its associated records.
         $logs = DB::table('activity_logs')
             ->leftJoin('users', 'activity_logs.user_id', '=', 'users.id')
-            ->where('target_type', 'case')
-            ->where('target_id', $caseFile->id)
+            ->where(function ($query) use ($caseFile, $stageIds, $taskIds, $chatMessageIds) {
+                $query->where(function ($targetQuery) use ($caseFile) {
+                    $targetQuery->where('target_type', 'case')->where('target_id', $caseFile->id);
+                });
+
+                if ($stageIds->isNotEmpty()) {
+                    $query->orWhere(function ($targetQuery) use ($stageIds) {
+                        $targetQuery->where('target_type', 'stage')->whereIn('target_id', $stageIds);
+                    });
+                }
+
+                if ($taskIds->isNotEmpty()) {
+                    $query->orWhere(function ($targetQuery) use ($taskIds) {
+                        $targetQuery->where('target_type', 'task')->whereIn('target_id', $taskIds);
+                    });
+                }
+
+                if ($chatMessageIds->isNotEmpty()) {
+                    $query->orWhere(function ($targetQuery) use ($chatMessageIds) {
+                        $targetQuery->where('target_type', 'chat')->whereIn('target_id', $chatMessageIds);
+                    });
+                }
+            })
             ->orderByDesc('activity_logs.created_at')
             ->limit(50)
             ->get(['activity_logs.*', 'users.name as user_name']);
