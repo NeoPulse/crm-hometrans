@@ -39,16 +39,6 @@ class CaseStageController extends Controller
         // Remove "new" attention markers once the viewer has opened the page.
         $this->clearNewMarkers($viewer, $stages);
 
-        // Log the viewing action for auditing purposes.
-        $this->logAction(
-            $viewer,
-            'view',
-            'case',
-            $caseFile->id,
-            "cases/{$caseFile->id}",
-            'Opened the case stage overview.'
-        );
-
         // Render the case detail blade with participant and stage data.
         return response()->view('cases.show', [
             'case' => $caseFile,

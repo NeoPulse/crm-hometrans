@@ -15,7 +15,7 @@
             <form method="GET" action="{{ route('logs.index') }}" class="row gy-2 gx-3 align-items-end">
                 <div class="col-md-6">
                     <label for="search" class="form-label">Search</label>
-                    <input type="text" name="search" id="search" value="{{ $search }}" class="form-control" placeholder="Search in details, location or email">
+                    <input type="text" name="search" id="search" value="{{ $search }}" class="form-control" placeholder="Search in details, location or user name">
                 </div>
                 <div class="col-md-4">
                     <label for="action" class="form-label">Action Type</label>
@@ -54,8 +54,20 @@
                             <tr>
                                 <td>{{ $log->created_at }}</td>
                                 <td>
-                                    <div class="fw-semibold">{{ $log->user_name ?? 'System' }}</div>
-                                    <div class="text-muted small">{{ $log->user_email }}</div>
+                                    @if($log->user_id)
+                                        @php
+                                            // Resolve the correct profile link based on the recorded role to open in a new tab.
+                                            $userLink = url('users/' . $log->user_id . '/edit');
+                                            if ($log->user_role === 'client') {
+                                                $userLink = route('clients.edit', $log->user_id);
+                                            } elseif ($log->user_role === 'legal') {
+                                                $userLink = route('legals.edit', $log->user_id);
+                                            }
+                                        @endphp
+                                        <a href="{{ $userLink }}" target="_blank" rel="noopener" class="fw-semibold text-decoration-none">{{ $log->user_name ?? 'User' }}</a>
+                                    @else
+                                        <span class="fw-semibold">System</span>
+                                    @endif
                                 </td>
                                 <td><span class="badge bg-secondary text-uppercase">{{ $log->action }}</span></td>
                                 <td>{{ $log->location ?? 'Not specified' }}</td>

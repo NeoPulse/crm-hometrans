@@ -102,21 +102,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Log the logout action whenever a user was present.
-        if ($user) {
-            DB::table('activity_logs')->insert([
-                'user_id' => $user->id,
-                'action' => 'logout',
-                'target_type' => 'auth',
-                'target_id' => $user->id,
-                'location' => 'navigation',
-                'details' => 'User signed out via the navigation menu.',
-                'ip_address' => $request->ip(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-
         return redirect()->route('login');
     }
 }
