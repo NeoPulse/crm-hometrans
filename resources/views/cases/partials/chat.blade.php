@@ -16,37 +16,33 @@
             <div class="border-top p-3">
                 <form id="case-chat-form" class="d-flex flex-column gap-2" novalidate>
                     @csrf
-                    <div class="d-flex align-items-center gap-2">
-                        @if($isAdmin)
-                            <div class="flex-shrink-0" style="min-width: 160px;">
-                                <label for="chat-send-as" class="form-label mb-1 small">Send as</label>
+                    @if($isAdmin)
+                        <div class="flex-shrink-0" style="min-width: 160px;">
+                            <div class="d-flex align-items-center gap-2 text-nowrap">
                                 <select id="chat-send-as" name="send_as" class="form-select form-select-sm">
                                     @foreach($chatProfile['labels'] as $label)
                                         <option value="{{ $label['value'] }}" @if($chatProfile['default_label'] === $label['value']) selected @endif>{{ $label['label'] }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                        @else
-                            <input type="hidden" id="chat-send-as" name="send_as" value="{{ $chatProfile['default_label'] }}">
-                        @endif
-                        <div class="flex-grow-1">
-                            <label for="chat-body" class="form-label mb-1 small">Message</label>
-                            <textarea id="chat-body" name="body" class="form-control" rows="2" placeholder="Type your update"></textarea>
+                        </div>
+                    @else
+                        <input type="hidden" id="chat-send-as" name="send_as" value="{{ $chatProfile['default_label'] }}">
+                    @endif
+
+                    <div class="flex-grow-1">
+                        <div id="chat-dropzone" class="border border-dashed rounded p-3 bg-white text-center">
+                            <i class="bi bi-paperclip me-1"></i>
+                            <span id="chat-file-label">Drop a file here or click to browse.</span>
+                            <input type="file" name="file" id="chat-file" class="d-none" aria-label="Upload file">
                         </div>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div class="flex-grow-1">
-                            <label class="form-label mb-1 small">Attachment (optional, max 20MB)</label>
-                            <div id="chat-dropzone" class="border border-dashed rounded p-3 bg-white text-center">
-                                <i class="bi bi-paperclip me-1"></i>
-                                <span id="chat-file-label">Drop a file here or click to browse.</span>
-                                <input type="file" name="file" id="chat-file" class="d-none" aria-label="Upload file">
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-end gap-2">
-                            <div id="chat-file-chip" class="badge bg-secondary d-none"></div>
-                            <button type="submit" class="btn btn-success">Send</button>
-                        </div>
+
+                    <textarea id="chat-body" name="body" class="form-control" rows="2" placeholder="Message (Enter to send)"></textarea>
+
+                    <div class="d-flex align-items-end">
+                        <div id="chat-file-chip" class="badge bg-secondary d-none"></div>
+                        {{-- <button type="submit" class="btn btn-success">Send</button>--}}
                     </div>
                 </form>
             </div>
@@ -86,15 +82,20 @@
         let chatPoll = null;
         let unreadPoll = null;
         let lastMessageId = null;
+        let isSending = false;
 
         // Smoothly scroll the viewport to the newest chat message when content changes.
         const scrollToLatestMessage = () => {
             if (!chatMessagesWrap) {
                 return;
             }
+
+            // Find the scrollable container (case-chat-body) or fall back to the messages wrapper
+            const scrollContainer = chatMessagesWrap.closest('.case-chat-body') || chatMessagesWrap;
+
             requestAnimationFrame(() => {
-                chatMessagesWrap.scrollTo({
-                    top: chatMessagesWrap.scrollHeight,
+                scrollContainer.scrollTo({
+                    top: scrollContainer.scrollHeight,
                     behavior: 'smooth',
                 });
             });
@@ -134,7 +135,7 @@
 
             const header = document.createElement('div');
             header.className = 'd-flex align-items-center justify-content-between mb-1';
-            header.innerHTML = `<span class="fw-semibold">${message.label}</span><small class="text-muted">${formatTimestamp(message.created_at)}</small>`;
+            header.innerHTML = `<span class="fw-semibold">${message.label}</span><small class="text-muted mx-3">${formatTimestamp(message.created_at)}</small>`;
 
             if (message.is_new) {
                 const badge = document.createElement('span');
@@ -187,7 +188,10 @@
                 chatEmptyAlert.classList.remove('d-none');
             } else {
                 chatEmptyAlert.classList.add('d-none');
-                scrollToLatestMessage();
+
+                if (!append || messages.length > 0) {
+                    scrollToLatestMessage();
+                }
             }
 
             const hasNew = chatMessagesWrap.querySelector('[data-new="1"]');
@@ -214,8 +218,36 @@
 
         // Persist a new message using the API.
         const sendMessage = (event) => {
-            event.preventDefault();
+            if (event) {
+                event.preventDefault();
+            }
+
+            // Prevent duplicate sends while a request is in progress
+            if (isSending) {
+                return;
+            }
+
+            if (!chatForm) {
+                return;
+            }
+
+            // Do not send completely empty messages (no text and no file)
+            const bodyValue = chatBodyInput ? chatBodyInput.value.trim() : '';
+            const hasFile = chatFileInput && chatFileInput.files && chatFileInput.files.length > 0;
+            if (!bodyValue && !hasFile) {
+                return;
+            }
+
             const formData = new FormData(chatForm);
+
+            // Lock UI while sending
+            isSending = true;
+            if (chatBodyInput) {
+                chatBodyInput.disabled = true;
+            }
+            if (chatDropzone) {
+                chatDropzone.classList.add('disabled');
+            }
 
             fetch(chatConfig.storeUrl, {
                 method: 'POST',
@@ -234,11 +266,26 @@
                     }
 
                     renderMessages([data.message], true);
-                    chatBodyInput.value = '';
+                    if (chatBodyInput) {
+                        chatBodyInput.value = '';
+                    }
                     resetFileSelection();
                     updateUnreadBadge(data.unread_count);
                 })
-                .catch(() => alert('Unable to send message.'));
+                .catch(() => {
+                    alert('Unable to send message.');
+                })
+                .finally(() => {
+                    // Unlock UI after request finishes
+                    isSending = false;
+                    if (chatBodyInput) {
+                        chatBodyInput.disabled = false;
+                        chatBodyInput.focus();
+                    }
+                    if (chatDropzone) {
+                        chatDropzone.classList.remove('disabled');
+                    }
+                });
         };
 
         // Delete a message when the admin requests removal.
@@ -401,6 +448,24 @@
             });
         }
 
+        // Submit message on Enter key (Shift+Enter = new line)
+        if (chatBodyInput) {
+            chatBodyInput.addEventListener('keydown', (e) => {
+                // If Enter pressed without Shift
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Prevent newline
+
+                    // Skip if we're already sending a message
+                    if (isSending) {
+                        return;
+                    }
+
+                    if (chatConfig.canPost && chatForm) {
+                        sendMessage(new Event('submit')); // Trigger submit
+                    }
+                }
+            });
+        }
         // Attach submit handler when posting is permitted.
         if (chatConfig.canPost && chatForm) {
             chatForm.addEventListener('submit', sendMessage);
