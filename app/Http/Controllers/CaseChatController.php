@@ -24,7 +24,11 @@ class CaseChatController extends Controller
         $viewer = $request->user();
         $this->authorizeCaseAccess($caseFile, $viewer);
 
-        $afterId = $request->integer('after_id');
+        // Validate the polling cursor to ensure only numeric values reach the query builder.
+        $validated = $request->validate([
+            'after_id' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $afterId = $validated['after_id'] ?? null;
 
         // Load messages incrementally to keep polling light.
         $messages = $caseFile->chatMessages()
@@ -66,6 +70,12 @@ class CaseChatController extends Controller
     {
         $sender = $request->user();
         $this->authorizeCaseAccess($caseFile, $sender);
+
+        // Restrict chat authorship to administrators and solicitors only.
+        if (! in_array($sender->role, ['admin', 'legal'], true)) {
+            abort(403, 'Access denied.');
+        }
+
 
         $senderLabel = $this->determineSenderLabel($sender, $caseFile, $request->input('send_as'));
 
