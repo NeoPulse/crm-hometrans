@@ -198,7 +198,7 @@
             chatHeaderNew.classList.toggle('d-none', !hasNew);
         };
 
-        // Retrieve messages from the server, optionally only those after the last ID.
+        // Retrieve messages from the server, optionally only those after the last ID, and only refresh when new items exist.
         const fetchMessages = () => {
             const url = lastMessageId ? `${chatConfig.fetchUrl}?after_id=${lastMessageId}` : chatConfig.fetchUrl;
             fetch(url, { headers: { 'Accept': 'application/json' } })
@@ -210,7 +210,13 @@
                     }
 
                     const append = Boolean(lastMessageId);
-                    renderMessages(data.messages, append);
+                    const hasNewMessages = Array.isArray(data.messages) && data.messages.length > 0;
+                    const shouldRender = !lastMessageId || hasNewMessages;
+
+                    if (shouldRender) {
+                        renderMessages(data.messages, append);
+                    }
+
                     updateUnreadBadge(data.unread_count);
                 })
                 .catch(() => alert('Chat messages could not be loaded.'));
