@@ -126,6 +126,7 @@ body {
     max-width: 90%;
     border-radius: 12px;
     padding: 12px 14px;
+    overflow: hidden;
 }
 
 /* Own messages should stand out with a primary background. */
@@ -164,7 +165,7 @@ body {
 
 /* Expand supporting space on handheld devices while keeping controls accessible. */
 @media (max-width: 991.98px) {
-    .case-chat-body {
+    .case-chat-body-margin {
         max-height: calc(100vh - 260px);
     }
 

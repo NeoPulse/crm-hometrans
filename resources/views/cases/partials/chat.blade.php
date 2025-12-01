@@ -8,7 +8,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body p-0 d-flex flex-column h-100">
-        <div class="case-chat-body bg-light p-3">
+        <div class="case-chat-body @if($isAdmin || ($chatProfile['default_label'] === 'legal')) case-chat-body-margin @endif bg-light p-3">
             <div id="case-chat-messages" class="d-flex flex-column gap-3"></div>
             <div id="case-chat-empty" class="alert alert-info py-2 mb-0 d-none">No messages yet.</div>
         </div>
