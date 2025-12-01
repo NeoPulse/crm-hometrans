@@ -1,29 +1,19 @@
-{{--
-<button id="case-chat-toggle" class="btn btn-primary position-fixed bottom-0 end-0 shadow-lg px-5 py-2 me-5 fs-5">
-    <i class="bi bi-chat-dots-fill me-2"></i>Case chat
-    <span id="case-chat-unread" class="badge bg-danger ms-2 d-none">0</span>
-</button>
---}}
-
-{{-- Modal-style overlay for the chat panel. --}}
-<div id="case-chat-overlay" class="case-chat-overlay d-none">
-    <div class="case-chat-modal card shadow-lg">
-        <div class="card-header d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-chat-square-text"></i>
-                <span class="fw-semibold">Case chat</span>
-                <span id="case-chat-header-new" class="badge bg-danger d-none">NEW</span>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="case-chat-close">
-                <i class="bi bi-x"></i>
-            </button>
+<div id="case-chat-offcanvas" class="offcanvas offcanvas-end case-chat-offcanvas" tabindex="-1" aria-labelledby="case-chat-offcanvas-label">
+    <div class="offcanvas-header border-bottom">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-chat-square-text"></i>
+            <span class="fw-semibold" id="case-chat-offcanvas-label">Case chat</span>
+            <span id="case-chat-header-new" class="badge bg-danger d-none">NEW</span>
         </div>
-        <div class="card-body case-chat-body bg-light">
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0 d-flex flex-column h-100">
+        <div class="case-chat-body bg-light p-3">
             <div id="case-chat-messages" class="d-flex flex-column gap-3"></div>
             <div id="case-chat-empty" class="alert alert-info py-2 mb-0 d-none">No messages yet.</div>
         </div>
         @if($chatProfile['can_post'])
-            <div class="card-footer">
+            <div class="border-top p-3">
                 <form id="case-chat-form" class="d-flex flex-column gap-2" novalidate>
                     @csrf
                     <div class="d-flex align-items-center gap-2">
@@ -78,9 +68,9 @@
         };
 
         // Cache DOM references for the chat interface.
-        const chatOverlay = document.getElementById('case-chat-overlay');
+        const chatOffcanvasEl = document.getElementById('case-chat-offcanvas');
+        const chatOffcanvas = chatOffcanvasEl ? new bootstrap.Offcanvas(chatOffcanvasEl) : null;
         const chatToggleBtn = document.getElementById('case-chat-toggle');
-        const chatCloseBtn = document.getElementById('case-chat-close');
         const chatMessagesWrap = document.getElementById('case-chat-messages');
         const chatEmptyAlert = document.getElementById('case-chat-empty');
         const chatHeaderNew = document.getElementById('case-chat-header-new');
@@ -120,21 +110,16 @@
             }
         };
 
-        // Toggle overlay visibility with CSS transitions.
+        // Toggle the offcanvas visibility using the Bootstrap API.
         const setChatVisibility = (visible) => {
+            if (!chatOffcanvas) {
+                return;
+            }
             chatOpen = visible;
             if (visible) {
-                chatOverlay.classList.remove('d-none');
-                setTimeout(() => chatOverlay.classList.add('active'), 10);
-                scrollToLatestMessage();
-                fetchMessages();
-                startChatPolling();
-                stopUnreadPolling();
+                chatOffcanvas.show();
             } else {
-                chatOverlay.classList.remove('active');
-                setTimeout(() => chatOverlay.classList.add('d-none'), 250);
-                stopChatPolling();
-                startUnreadPolling();
+                chatOffcanvas.hide();
             }
         };
 
@@ -396,13 +381,25 @@
         }
 
         // Register event handlers for opening and closing the chat window.
-        chatToggleBtn.addEventListener('click', () => setChatVisibility(true));
-        chatCloseBtn.addEventListener('click', () => setChatVisibility(false));
-        chatOverlay.addEventListener('click', (event) => {
-            if (event.target === chatOverlay) {
-                setChatVisibility(false);
-            }
-        });
+        if (chatToggleBtn) {
+            chatToggleBtn.addEventListener('click', () => setChatVisibility(true));
+        }
+
+        if (chatOffcanvasEl) {
+            chatOffcanvasEl.addEventListener('shown.bs.offcanvas', () => {
+                chatOpen = true;
+                scrollToLatestMessage();
+                fetchMessages();
+                startChatPolling();
+                stopUnreadPolling();
+            });
+
+            chatOffcanvasEl.addEventListener('hidden.bs.offcanvas', () => {
+                chatOpen = false;
+                stopChatPolling();
+                startUnreadPolling();
+            });
+        }
 
         // Attach submit handler when posting is permitted.
         if (chatConfig.canPost && chatForm) {

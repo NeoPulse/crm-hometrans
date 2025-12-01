@@ -109,44 +109,15 @@ body {
     z-index: 1040;
 }
 */
-/* Overlay that dims the background while the chat is open. */
-.case-chat-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 1045;
-}
-
-/* Visible state for the chat overlay. */
-.case-chat-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Modal container respecting viewport constraints. */
-.case-chat-modal {
-    width: 600px;
-    max-width: calc(100vw - 20px);
-    height: 500px;
-    max-height: calc(100vh - 20px);
-    transform: translateY(20px);
-    transition: transform 0.3s ease;
-}
-
-/* Slide the modal into place when the overlay is active. */
-.case-chat-overlay.active .case-chat-modal {
-    transform: translateY(0);
+/* Right-hand offcanvas that houses the chat experience. */
+.case-chat-offcanvas {
+    --bs-offcanvas-width: min(600px, 100vw);
 }
 
 /* Scrollable chat body area. */
 .case-chat-body {
-    height: 360px;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
 }
 
@@ -191,18 +162,10 @@ body {
     border-style: dashed !important;
 }
 
-/* Expand the chat panel to full-screen on handheld devices. */
+/* Expand supporting space on handheld devices while keeping controls accessible. */
 @media (max-width: 991.98px) {
-    .case-chat-modal {
-        width: 100vw;
-        height: 100vh;
-        max-width: 100vw;
-        max-height: 100vh;
-        border-radius: 0;
-    }
-
     .case-chat-body {
-        height: calc(100vh - 220px);
+        max-height: calc(100vh - 260px);
     }
 
     #case-chat-toggle {
