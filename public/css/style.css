@@ -1,0 +1,231 @@
+body {
+    font-family: 'Instrument Sans', Arial, sans-serif;
+}
+
+.card-footer {
+    padding-bottom: 0;
+    padding-top: 0;
+}
+.pagination {
+    padding-top: 12px;
+}
+
+.navbar .nav-link.active {
+    font-weight: 600;
+    color: var(--bs-primary) !important;
+    border-bottom: 2px solid var(--bs-primary);
+}
+
+
+.caseShow__participantName {
+    max-width: 90px;
+}
+
+
+/* Avatar styling to enforce 50x50 circular images. */
+.avatar-50 {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+}
+
+/* Provide subtle hover state for team members. */
+.team-member:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+/* Ensure nav pills align with the clean dashboard look. */
+.nav-pills .nav-link {
+    border-radius: 999px;
+}
+
+/* Maintain consistent card appearance. */
+.card {
+    border-color: #e9ecef;
+}
+
+/* Make clickable table rows show a pointer cursor for clarity. */
+.table-row-link {
+    cursor: pointer;
+}
+
+/* Display mobile task spoilers with clear separation from the stage header. */
+.stage-tasks-mobile {
+    border-top: 1px solid #e9ecef;
+    padding-top: 10px;
+}
+
+/* Stage cards gain a pointer cursor and subtle highlight on hover. */
+.stage-card {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+/* Emphasise the selected stage card with a stronger outline. */
+.stage-card.border-primary {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+}
+
+/* Keep progress bars compact within the stage list. */
+.stage-card .progress {
+    height: 0.6rem;
+}
+
+/* Ensure inline inputs retain alignment without visible borders. */
+.task-name-input,
+.task-deadline-input {
+    min-width: 130px;
+    max-width: 240px;
+    box-shadow: none !important;
+}
+
+.task__name {
+    max-width: 47%;
+}
+
+/* Keep the participant strip on a single line while allowing horizontal scroll on small screens. */
+.team-strip {
+    white-space: nowrap;
+}
+
+.task-row .saving-indicator {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.task-row.saving .saving-indicator {
+    opacity: 1;
+}
+.task-row .dropdown-toggle::after {
+    display: none;
+}
+
+/* Anchor the chat launcher to the bottom-right corner. */
+/*
+#case-chat-toggle {
+    z-index: 1040;
+}
+*/
+/* Right-hand offcanvas that houses the chat experience. */
+.case-chat-offcanvas {
+    --bs-offcanvas-width: min(600px, 100vw);
+}
+
+/* Scrollable chat body area. */
+.case-chat-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* Base styling for chat bubbles. */
+.case-chat-bubble {
+    max-width: 90%;
+    border-radius: 12px;
+    padding: 12px 14px;
+    overflow: hidden;
+}
+
+/* Own messages should stand out with a primary background. */
+.case-chat-bubble.mine {
+    background: #0d6efd;
+    color: #fff;
+    margin-left: auto;
+}
+
+/* Received messages stay neutral. */
+.case-chat-bubble.theirs {
+    background: #f8f9fa;
+    color: #212529;
+}
+
+/* Attachment chip inside chat bubbles. */
+.case-chat-attachment {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Drag-and-drop highlight for the upload zone. */
+#chat-dropzone.dragover {
+    border-color: #0d6efd;
+    background: #e7f1ff;
+}
+
+/* Utility class to show dashed borders when needed. */
+.border-dashed {
+    border-style: dashed !important;
+}
+
+/* Expand supporting space on handheld devices while keeping controls accessible. */
+@media (max-width: 991.98px) {
+    .case-chat-body-margin {
+        max-height: calc(100vh - 260px);
+    }
+
+    #case-chat-toggle {
+        right: 1rem;
+        bottom: 1rem;
+    }
+}
+
+
+/**** Login ****/
+.login__left {
+    background-color: #636981;
+    color: #FFF;
+}
+.login-box {
+    width: 100%;
+    margin: 100px 0;
+}
+.login-box-msg {
+    font-size: 25px;
+}
+.login .input-group-append {
+    margin-left: -4px !important;
+}
+.registration__text {
+    margin: 15px 0 40px;
+}
+.registration__btn {
+    width: 100%;
+    background-color: #636981;
+    color: #FFF;
+}
+.pwdControl {
+    width: 16px;
+    height: 22px;
+    background-image: url(/images/eye.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.pwdControl.view {
+    background-image: url(/images/eye-slash.svg);
+}
+@media only screen and (max-width: 576px) {
+    .login-page {
+        height: auto;
+    }
+    .login-box {
+        margin: 34px 0;
+    }
+    .login-box input, .login-box button, .registration__btn {
+        font-size: 18px;
+    }
+    .login-box .pwdControl, .login-box .login__envelope {
+        width: 23px;
+    }
+}
+@media (min-width: 780px) {
+    .login {
+        margin-top: 15vh;
+    }
+}
