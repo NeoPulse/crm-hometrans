@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CaseFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +50,49 @@ class AuthController extends Controller
             ])->withInput($request->only('email'));
         }
 
+        // Precompute the intended redirect location and enforce in-progress case membership for legal and client roles.
+        $redirectTarget = route('home');
+
+        if (in_array($user->role, ['legal', 'client'], true)) {
+            // Fetch all cases where the authenticated user participates and the case is currently in progress.
+            $progressCases = CaseFile::query()
+                ->where('status', 'progress')
+                ->where(function ($query) use ($user) {
+                    if ($user->role === 'legal') {
+                        $query->where('sell_legal_id', $user->id)
+                            ->orWhere('buy_legal_id', $user->id);
+                    } else {
+                        $query->where('sell_client_id', $user->id)
+                            ->orWhere('buy_client_id', $user->id);
+                    }
+                })
+                ->get();
+
+            // Block authentication when the legal or client user is not assigned to any in-progress case.
+            if ($progressCases->isEmpty()) {
+                DB::table('activity_logs')->insert([
+                    'user_id' => $user->id,
+                    'action' => 'login_denied',
+                    'target_type' => 'auth',
+                    'target_id' => $user->id,
+                    'location' => 'login form',
+                    'details' => 'User attempted to sign in without any in-progress case assignments.',
+                    'ip_address' => $request->ip(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                return back()->withErrors([
+                    'email' => 'You do not have any in-progress cases assigned.',
+                ])->withInput($request->only('email'));
+            }
+
+            // Determine the redirect target depending on whether the user participates in one or multiple in-progress cases.
+            $redirectTarget = $progressCases->count() === 1
+                ? route('cases.show', ['caseFile' => $progressCases->first()->id])
+                : route('casemanager.list');
+        }
+
         // Attempt to authenticate the user with the web guard and regenerate the session.
         if (Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
             $request->session()->regenerate();
@@ -73,7 +117,7 @@ class AuthController extends Controller
                 'updated_at' => now(),
             ]);
 
-            return redirect()->route('home');
+            return redirect()->intended($redirectTarget);
         }
 
         // Fallback error in case authentication fails unexpectedly.
