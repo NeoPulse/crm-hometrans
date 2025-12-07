@@ -62,16 +62,13 @@ class CaseStageController extends Controller
             'name' => ['required', 'string', 'max:300'],
         ]);
 
-        // Persist the stage and notify relevant participants.
+        // Persist the stage record inside a transaction for safety.
         $stage = null;
         DB::transaction(function () use ($caseFile, $validated, &$stage) {
             $stage = Stage::create([
                 'case_id' => $caseFile->id,
                 'name' => $validated['name'],
             ]);
-
-            // Create attention records for clients and solicitors assigned to the case.
-            $this->createNewAttention($caseFile, 'stage', $stage->id);
         });
 
         // Log the creation event with contextual details.
@@ -185,7 +182,7 @@ class CaseStageController extends Controller
             'side' => ['required', 'in:seller,buyer'],
         ]);
 
-        // Persist the new task and notify stakeholders.
+        // Persist the new task while leaving notification logic to status updates.
         $task = null;
         DB::transaction(function () use ($stage, $validated, &$task) {
             $task = Task::create([
@@ -195,9 +192,6 @@ class CaseStageController extends Controller
                 'status' => 'new',
                 'deadline' => null,
             ]);
-
-            // Mark the task as new for clients and solicitors tied to the parent case.
-            $this->createNewAttention($stage->caseFile, 'task', $task->id);
         });
 
         // Record the creation operation in the activity log.
@@ -227,6 +221,9 @@ class CaseStageController extends Controller
         // Limit updates to administrators.
         $this->assertAdmin($request->user());
 
+        // Capture the current status to detect transitions for notifications.
+        $originalStatus = $task->status;
+
         // Validate provided attributes while allowing partial updates.
         $validated = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:300'],
@@ -237,6 +234,11 @@ class CaseStageController extends Controller
         // Apply changes only when fields are supplied.
         if (! empty($validated)) {
             $task->update($validated);
+        }
+
+        // Create attention markers only when the task status changes.
+        if (array_key_exists('status', $validated) && $validated['status'] !== $originalStatus) {
+            $this->createTaskStatusAttention($task);
         }
 
         // Log the update action for the audit history.
@@ -332,13 +334,18 @@ class CaseStageController extends Controller
             ];
         })->values();
 
+        // Mark the stage as new when any contained task is new for the viewer.
+        $stageHasNewTasks = $tasks->contains(function (array $task) {
+            return $task['is_new'] === true;
+        });
+
         // Provide a consistent payload structure.
         return [
             'id' => $stage->id,
             'case_id' => $stage->case_id,
             'name' => $stage->name,
             'progress' => $progress,
-            'is_new' => $stage->attentions->isNotEmpty(),
+            'is_new' => $stage->attentions->isNotEmpty() || $stageHasNewTasks,
             'tasks' => $tasks,
         ];
     }
@@ -430,10 +437,14 @@ class CaseStageController extends Controller
     }
 
     /**
-     * Create a "new" attention record for each assigned client and solicitor.
+     * Create a "new" attention record for each assigned client and solicitor when a task status changes.
      */
-    protected function createNewAttention(CaseFile $caseFile, string $targetType, int $targetId): void
+    protected function createTaskStatusAttention(Task $task): void
     {
+        // Resolve the related case to identify all participants who require the notification.
+        $caseFile = $task->stage->caseFile;
+
+        // Collect participant identifiers, ignoring any missing assignments.
         $recipientIds = array_filter([
             $caseFile->sell_client_id,
             $caseFile->buy_client_id,
@@ -441,10 +452,11 @@ class CaseStageController extends Controller
             $caseFile->buy_legal_id,
         ]);
 
+        // Create unique notifications so the table does not accumulate duplicates per user and task.
         foreach ($recipientIds as $userId) {
             Attention::firstOrCreate([
-                'target_type' => $targetType,
-                'target_id' => $targetId,
+                'target_type' => 'task',
+                'target_id' => $task->id,
                 'type' => 'new',
                 'user_id' => $userId,
             ]);
