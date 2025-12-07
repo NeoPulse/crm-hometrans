@@ -9,6 +9,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ProfileController;
+use App\Models\CaseFile;
 use Illuminate\Support\Facades\Route;
 
 // Public route serving the login form for guests.
@@ -20,8 +21,28 @@ Route::middleware('guest')->group(function () {
 // Protected routes that require an authenticated session.
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
-        // Redirect authenticated users to their respective workspace based on role.
-        if (auth()->user()->role === 'legal' || auth()->user()->role === 'client') {
+        // Redirect authenticated users to their respective workspace based on role and case assignments.
+        $user = auth()->user();
+
+        if (in_array($user->role, ['legal', 'client'], true)) {
+            // Gather in-progress cases tied to the authenticated user for tailored routing.
+            $progressCases = CaseFile::query()
+                ->where('status', 'progress')
+                ->where(function ($query) use ($user) {
+                    if ($user->role === 'legal') {
+                        $query->where('sell_legal_id', $user->id)
+                            ->orWhere('buy_legal_id', $user->id);
+                    } else {
+                        $query->where('sell_client_id', $user->id)
+                            ->orWhere('buy_client_id', $user->id);
+                    }
+                })
+                ->get();
+
+            if ($progressCases->count() === 1) {
+                return redirect()->route('cases.show', ['caseFile' => $progressCases->first()->id]);
+            }
+
             return redirect()->route('casemanager.list');
         }
 
