@@ -60,9 +60,20 @@
                     </tr>
                     </thead>
                     <tbody>
+                    @php
+                        // Map statuses to Bootstrap 5 table row classes
+                        $statusClasses = [
+                            'new'       => 'table-secondary', // gray
+                            'progress'  => 'table-info',      // turquoise-like
+                            'completed' => 'table-success',   // green
+                            'cancelled' => 'table-cancelled',      // dark
+                        ];
+                    @endphp
                     @forelse($cases as $case)
                         @php
-                            $rowClass = $case->status === 'progress' ? 'table-success' : 'table-secondary';
+                            // Select class based on case status
+                            //$rowClass = $case->status === 'progress' ? 'table-success' : 'table-secondary';
+                            $rowClass = $statusClasses[$case->status] ?? 'table-secondary';
                             $attentionTypes = ['attention', 'mail', 'doc'];
                             $deadlineClass = $case->deadline && $case->deadline->isPast() ? 'text-danger fw-bold' : '';
                         @endphp
@@ -74,7 +85,7 @@
                                 <div class="d-flex gap-2">
                                     @foreach($attentionTypes as $type)
                                         @php $exists = $case->attentions->firstWhere('type', $type); @endphp
-                                        <span class="text-{{ $exists ? 'danger' : 'secondary' }}"><i class="bi bi-{{ $type === 'attention' ? 'exclamation-circle' : ($type === 'mail' ? 'envelope' : 'file-earmark-text') }}"></i></span>
+                                        <span class="text-{{ $exists ? 'danger' : 'secondary' }}"><i class="bi bi-{{ $type === 'attention' ? 'exclamation-circle-fill' : ($type === 'mail' ? 'envelope-fill' : 'file-earmark-text-fill') }}"></i></span>
                                     @endforeach
                                 </div>
                             </td>

@@ -4,17 +4,23 @@
 
     <div class="row align-items-center">
         <div class="col-6 col-lg-3">
-            <h1 class="fs-4 mb-0">Case {{ $case->postal_code }}</h1>
+            <h1 class="fs-4 mb-0">
+                @if($isAdmin)
+                    <a href="{{ route('casemanager.edit', $case) }}" target="_blank" class="text-body">Case {{ $case->postal_code }}</a>
+                @else
+                    Case {{ $case->postal_code }}
+                @endif
+            </h1>
             <p class="m-0">Deadline {{ optional($case->deadline)->format('d/m') ?? '—' }}</p>
         </div>
         <div class="col-6 col-lg-2 text-end text-lg-center">
-            <button id="case-chat-toggle" class="btn btn-primary shadow-sm">
+            <button id="case-chat-toggle" class="btn btn-primary shadow-sm px-4 py-2">
                     <i class="bi bi-chat-dots-fill me-2"></i>Case chat
                     <span id="case-chat-unread" class="badge bg-danger ms-2 d-none">0</span>
             </button>
         </div>
-        <div class="col-lg-7 mt-3 mt-lg-0">
-            <div class="d-lg-flex gap-3 justify-content-between justify-content-lg-end">
+        <div class="col-lg-7 mt-3 mt-lg-0 text-lg-end">
+            <div class="d-inline-flex gap-sm-3 border border-primary rounded bg-white">
 
                 @foreach ($participants as $participant)
                     @php
@@ -53,7 +59,7 @@
                         $popover = implode('<br>', $popoverLines);
                     @endphp
 
-                    <div class="team-member d-flex align-items-center justify-content-between px-3 py-2 border rounded flex-shrink-0"
+                    <div class="team-member d-md-flex align-items-center text-start justify-content-between px-3 py-1 flex-shrink-0 rounded"
                          tabindex="0"
                          data-bs-toggle="popover"
                          data-bs-trigger="focus"
@@ -61,11 +67,11 @@
                          data-bs-placement="bottom"
                          data-bs-content="{!! $popover !!}">
 
-                        <div class="fw-semibold caseShow__participantName">
+                        <img src="{{ $avatar }}" class="rounded-circle avatar-65 me-3" alt="Avatar">
+
+                        <div class="caseShow__participantName">
                             {{ $label }}
                         </div>
-
-                        <img src="{{ $avatar }}" class="rounded-circle avatar-50" alt="Avatar">
                     </div>
                 @endforeach
             </div>
@@ -169,8 +175,8 @@
 
         // Provide consistent iconography and colour coding per status.
         const statusMeta = {
-            new: { icon: 'bi-plus-circle-fill', classes: 'text-secondary' },
-            progress: { icon: 'bi-play-circle-fill', classes: 'text-primary' },
+            new: { icon: 'bi-circle', classes: 'text-secondary' },
+            progress: { icon: 'bi-clock-fill', classes: 'text-primary' },
             done: { icon: 'bi-check-circle-fill', classes: 'text-success' },
         };
 
@@ -198,7 +204,7 @@
                 const isMobile = isMobileLayout();
                 const isActiveDesktop = stage.id === activeStageId && !isMobile;
                 const isExpandedMobile = openedMobileStages.has(stage.id);
-                card.className = `card stage-card shadow-sm mb-2 ${isActiveDesktop ? 'border-primary' : ''}`;
+                card.className = `card stage-card shadow-sm mb-2 border-2 ${isActiveDesktop ? 'border-primary' : ''}`;
                 card.dataset.stageId = stage.id;
 
                 card.innerHTML = `
@@ -391,7 +397,7 @@
                 const deadlineClass = task.overdue ? 'bg-danger-subtle text-danger' : 'bg-light';
 
                 return `
-                    <div class="d-flex align-items-center gap-3 border-bottom pb-1 mb-1 task-row position-relative">
+                    <div class="d-flex align-items-center gap-1 border-bottom pb-1 mb-1 task-row position-relative">
                         <div class="fw-semibold text-muted" style="min-width: 24px;">${index + 1}.</div>
                         <div class="flex-grow-1 task__name">
                             <div class="text-truncate" title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</div>

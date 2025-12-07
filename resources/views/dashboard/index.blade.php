@@ -33,7 +33,7 @@
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-striped align-middle mb-0">
+                <table class="table align-middle mb-0">
                     <thead class="table-light">
                     <tr>
                         <th scope="col">ID</th>
@@ -49,7 +49,7 @@
                     @forelse($progressCases as $case)
                         @php
                             // Mark the row and deadline styling to mirror the case manager view.
-                            $rowClass = $case->status === 'progress' ? 'table-success' : 'table-secondary';
+                            $rowClass = $case->status === 'progress' ? 'table-info' : 'table-secondary';
                             $attentionTypes = ['attention', 'mail', 'doc'];
                             $deadlineClass = $case->deadline && $case->deadline->isPast() ? 'text-danger fw-bold' : '';
                         @endphp

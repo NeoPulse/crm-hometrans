@@ -372,10 +372,12 @@ class CaseManagerController extends Controller
         ]);
 
         // Build the user search query filtering by name, email, or id.
-        $query = User::query()->where(function ($inner) use ($validated) {
-            $inner->where('name', 'like', "%{$validated['q']}%")
-                ->orWhere('email', 'like', "%{$validated['q']}%")
-                ->orWhere('id', (int) $validated['q']);
+        $query = User::query()
+            ->where('is_active', 1) // ← filter only active users
+            ->where(function ($inner) use ($validated) {
+                $inner->where('name', 'like', "%{$validated['q']}%")
+                    ->orWhere('email', 'like', "%{$validated['q']}%")
+                    ->orWhere('id', (int) $validated['q']);
         });
 
         // Limit results to the requested role when provided.

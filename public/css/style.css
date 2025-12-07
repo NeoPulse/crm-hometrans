@@ -12,8 +12,28 @@ body {
 
 .navbar .nav-link.active {
     font-weight: 600;
-    color: var(--bs-primary) !important;
-    border-bottom: 2px solid var(--bs-primary);
+    color: #272f4e !important;
+    border-bottom: 2px solid #272f4e;
+}
+
+.table-success {
+    --bs-table-bg: #b7ddc2 !important;
+}
+.table-info {
+    --bs-table-bg: #B6F9FC !important;
+}
+.table-cancelled {
+    --bs-table-bg: #929292 !important;
+}
+.btn-primary {
+    --bs-btn-bg: #272f4e;
+    --bs-btn-border-color: #272f4e;
+}
+.btn-primary:hover {
+    background-color: #303e78 !important;
+}
+.border-primary {
+    border-color: #272f4e !important;
 }
 
 
@@ -26,6 +46,11 @@ body {
 .avatar-50 {
     width: 50px;
     height: 50px;
+    object-fit: cover;
+}
+.avatar-65 {
+    width: 65px;
+    height: 65px;
     object-fit: cover;
 }
 
@@ -124,23 +149,24 @@ body {
 /* Base styling for chat bubbles. */
 .case-chat-bubble {
     max-width: 90%;
+    min-width: 60%;
     border-radius: 12px;
     padding: 12px 14px;
     overflow: hidden;
 }
 
-/* Own messages should stand out with a primary background. */
+
+/*
 .case-chat-bubble.mine {
     background: #0d6efd;
     color: #fff;
     margin-left: auto;
 }
-
-/* Received messages stay neutral. */
 .case-chat-bubble.theirs {
     background: #f8f9fa;
     color: #212529;
 }
+*/
 
 /* Attachment chip inside chat bubbles. */
 .case-chat-attachment {
@@ -150,6 +176,15 @@ body {
     padding: 6px 10px;
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.05);
+}
+.message--buy .case-chat-bubble {
+    background-color: #E0FCD7;
+}
+.message--sell .case-chat-bubble {
+    background-color: #FFF;
+}
+.message--manager .case-chat-bubble {
+    background-color: #73FDFF;
 }
 
 /* Drag-and-drop highlight for the upload zone. */

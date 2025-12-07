@@ -1,16 +1,39 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Page heading with case reference and navigation placeholder. -->
+
+    <div class="row align-items-center mb-3">
+        <div class="col-lg-6 text-center text-lg-start">
+            <h1 class="h4 mb-1">Case {{ $case->postal_code }}</h1>
+        </div>
+        <div class="col-6 col-lg-4">
+            <div class="d-flex gap-3 justify-content-lg-end">
+                @foreach(['attention' => 'exclamation-circle-fill', 'mail' => 'envelope-fill', 'doc' => 'file-earmark-text-fill'] as $type => $icon)
+                    @php $active = $case->attentions->firstWhere('type', $type); @endphp
+                    <form method="POST" action="{{ route('casemanager.attention', [$case, $type]) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-link p-0 text-{{ $active ? 'danger' : 'secondary' }}" title="Toggle {{ $type }}">
+                            <i class="bi bi-{{ $icon }} fs-4"></i>
+                        </button>
+                    </form>
+                @endforeach
+            </div>
+        </div>
+        <div class="col-6 col-lg-2 text-end">
+            <a class="btn btn-outline-secondary" href="{{ route('cases.show', $case) }}" target="_blank" rel="noopener">Show case</a>
+        </div>
+    </div>
+
+    {{-- Page heading with case reference and navigation placeholder.
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h4 mb-1">Case #{{ $case->id }} {{ $case->postal_code }}</h1>
-            <p class="text-muted mb-0">Review and maintain participants, status, and notifications.</p>
+            <h1 class="h4 mb-1">Case {{ $case->postal_code }}</h1>
         </div>
         <a class="btn btn-outline-secondary" href="{{ route('cases.show', $case) }}" target="_blank" rel="noopener">Show case</a>
     </div>
+    --}}
 
-    {{--    <!-- Status and validation feedback for administrator actions. -->--}}
+    {{-- Status and validation feedback for administrator actions. --}}
     @if ($errors->any())
         <div class="alert alert-danger">{{ $errors->first() }}</div>
     @endif
@@ -23,76 +46,89 @@
             {{-- Participant assignment form covering both sell and buy sides. --}}
             <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <h2 class="h5 mb-3">Participants</h2>
                     <form method="POST" action="{{ route('casemanager.participants', $case) }}" id="participants-form" novalidate>
                         @csrf
-                        <div class="mb-3">
-                            <h3 class="h6 text-uppercase text-muted">Sell-side</h3>
+                        <div class="pt-2 mb-3">
+                            <h3 class="h6 text-uppercase">Sell-side</h3>
                         </div>
-                        <div class="mb-3 position-relative">
-                            <label for="sell_legal_display" class="form-label">Sell legal</label>
-                            <input type="hidden" id="sell_legal_id" name="sell_legal_id" value="{{ $case->sell_legal_id }}">
-                            <input type="text" class="form-control user-search" data-role="legal" data-target="sell-legal-results" data-hidden="sell_legal_id" id="sell_legal_display" value="{{ $case->sellLegal?->name }}" placeholder="Type ID or name">
-                            <div class="form-text">
+                        <div class="row pb-3">
+                            <div class="col-lg-6">
+                                <i class="bi bi-mortarboard-fill fs-4 pe-2"></i>
                                 @if($case->sellLegal)
                                     <a href="{{ route('legals.edit', $case->sellLegal->id) }}" target="_blank" class="text-decoration-none">{{ $case->sellLegal->name }}</a>
                                 @else
-                                    No sell legal assigned
+                                    <span class="text-secondary">No legal assigned</span>
                                 @endif
                             </div>
-                            <div class="list-group position-absolute w-100 z-1 shadow-sm" id="sell-legal-results"></div>
+                            <div class="col-lg-6">
+                                <input type="hidden" id="sell_legal_id" name="sell_legal_id" value="{{ $case->sell_legal_id }}">
+                                <input type="text" class="form-control user-search" autocomplete="off" data-role="legal" data-target="sell-legal-results" data-hidden="sell_legal_id" id="sell_legal_display" value="{{ $case->sellLegal?->name }}" placeholder="Type ID or name">
+                                <div class="list-group position-absolute w-100 z-1 shadow-sm" id="sell-legal-results"></div>
+                            </div>
                         </div>
-                        <div class="mb-4 position-relative">
-                            <label for="sell_client_display" class="form-label">Sell client</label>
-                            <input type="hidden" id="sell_client_id" name="sell_client_id" value="{{ $case->sell_client_id }}">
-                            <input type="text" class="form-control user-search" data-role="client" data-target="sell-client-results" data-hidden="sell_client_id" id="sell_client_display" value="{{ $case->sellClient?->name }}" placeholder="Type ID or name">
-                            <div class="form-text">
+                        <div class="row pb-3">
+                            <div class="col-lg-6">
+                                <i class="bi bi-person-workspace fs-4 pe-2"></i>
                                 @if($case->sellClient)
                                     <a href="{{ route('clients.edit', $case->sellClient->id) }}" target="_blank" class="text-decoration-none">{{ $case->sellClient->name }}</a>
                                 @else
-                                    No sell client assigned
+                                    <span class="text-secondary">No client assigned</span>
                                 @endif
                             </div>
-                            <div class="list-group position-absolute w-100 z-1 shadow-sm" id="sell-client-results"></div>
+                            <div class="col-lg-6">
+                                <input type="hidden" id="sell_client_id" name="sell_client_id" value="{{ $case->sell_client_id }}">
+                                <input type="text" class="form-control user-search" data-role="client" data-target="sell-client-results" data-hidden="sell_client_id" id="sell_client_display" value="{{ $case->sellClient?->name }}" placeholder="Type ID or name">
+                                <div class="list-group position-absolute w-100 z-1 shadow-sm" id="sell-client-results"></div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <h3 class="h6 text-uppercase text-muted">Buy-side</h3>
+
+                        <hr>
+
+                        <div class="mt-4 mb-3">
+                            <h3 class="h6 text-uppercase">Buy-side</h3>
                         </div>
-                        <div class="mb-3 position-relative">
-                            <label for="buy_legal_display" class="form-label">Buy legal</label>
-                            <input type="hidden" id="buy_legal_id" name="buy_legal_id" value="{{ $case->buy_legal_id }}">
-                            <input type="text" class="form-control user-search" data-role="legal" data-target="buy-legal-results" data-hidden="buy_legal_id" id="buy_legal_display" value="{{ $case->buyLegal?->name }}" placeholder="Type ID or name">
-                            <div class="form-text">
+
+                        <div class="row pb-3">
+                            <div class="col-lg-6">
+                                <i class="bi bi-mortarboard-fill fs-4 pe-2"></i>
                                 @if($case->buyLegal)
                                     <a href="{{ route('legals.edit', $case->buyLegal->id) }}" target="_blank" class="text-decoration-none">{{ $case->buyLegal->name }}</a>
                                 @else
-                                    No buy legal assigned
+                                    <span class="text-secondary">No legal assigned</span>
                                 @endif
                             </div>
-                            <div class="list-group position-absolute w-100 z-1 shadow-sm" id="buy-legal-results"></div>
+                            <div class="col-lg-6">
+                                <input type="hidden" id="buy_legal_id" name="buy_legal_id" value="{{ $case->buy_legal_id }}">
+                                <input type="text" class="form-control user-search" data-role="legal" data-target="buy-legal-results" data-hidden="buy_legal_id" id="buy_legal_display" value="{{ $case->buyLegal?->name }}" placeholder="Type ID or name">
+                                <div class="list-group position-absolute w-100 z-1 shadow-sm" id="buy-legal-results"></div>
+                            </div>
                         </div>
-                        <div class="mb-4 position-relative">
-                            <label for="buy_client_display" class="form-label">Buy client</label>
-                            <input type="hidden" id="buy_client_id" name="buy_client_id" value="{{ $case->buy_client_id }}">
-                            <input type="text" class="form-control user-search" data-role="client" data-target="buy-client-results" data-hidden="buy_client_id" id="buy_client_display" value="{{ $case->buyClient?->name }}" placeholder="Type ID or name">
-                            <div class="form-text">
+
+                        <div class="row pb-4">
+                            <div class="col-lg-6">
+                                <i class="bi bi-person-workspace fs-4 pe-2"></i>
                                 @if($case->buyClient)
                                     <a href="{{ route('clients.edit', $case->buyClient->id) }}" target="_blank" class="text-decoration-none">{{ $case->buyClient->name }}</a>
                                 @else
-                                    No buy client assigned
+                                    <span class="text-secondary">No client assigned</span>
                                 @endif
                             </div>
-                            <div class="list-group position-absolute w-100 z-1 shadow-sm" id="buy-client-results"></div>
+                            <div class="col-lg-6">
+                                <input type="hidden" id="buy_client_id" name="buy_client_id" value="{{ $case->buy_client_id }}">
+                                <input type="text" class="form-control user-search" data-role="client" data-target="buy-client-results" data-hidden="buy_client_id" id="buy_client_display" value="{{ $case->buyClient?->name }}" placeholder="Type ID or name">
+                                <div class="list-group position-absolute w-100 z-1 shadow-sm" id="buy-client-results"></div>
+                            </div>
                         </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary" id="participants-save">Save</button>
+
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-primary px-5" id="participants-save">Save</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
         <div class="col-12 col-lg-6">
-            {{-- Attention toggle tools and main case details form. --}}
+            {{-- Attention toggle tools and main case details form.
             <div class="card shadow-sm mb-4">
                 <div class="card-body d-flex align-items-center justify-content-between">
                     <div>
@@ -112,21 +148,17 @@
                     </div>
                 </div>
             </div>
+            --}}
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h2 class="h5 mb-3">Case details</h2>
                     <form method="POST" action="{{ route('casemanager.details', $case) }}" id="details-form" novalidate>
                         @csrf
                         <div class="row g-3">
-                            <div class="col-12 col-md-6">
-                                <label for="postal_code_detail" class="form-label">P/Code *</label>
-                                <input type="text" class="form-control" id="postal_code_detail" name="postal_code" value="{{ $case->postal_code }}" required pattern="^\\S+$">
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label for="property" class="form-label">Property</label>
+                            <div class="col-12">
+                                <label for="property" class="form-label">Address</label>
                                 <input type="text" class="form-control" id="property" name="property" value="{{ $case->property }}">
                             </div>
-                            <div class="col-12 col-md-6">
+                            <div class="col-12 col-lg-4">
                                 <label for="status" class="form-label">Status *</label>
                                 <select class="form-select" id="status" name="status" required>
                                     @foreach(['new' => 'New', 'progress' => 'Progress', 'completed' => 'Completed', 'cancelled' => 'Cancelled'] as $key => $label)
@@ -134,7 +166,11 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-12 col-md-6">
+                            <div class="col-12 col-lg-4">
+                                <label for="postal_code_detail" class="form-label">P/Code *</label>
+                                <input type="text" class="form-control" id="postal_code_detail" name="postal_code" value="{{ $case->postal_code }}" required pattern="^\\S+$">
+                            </div>
+                            <div class="col-12 col-lg-4">
                                 <label for="deadline" class="form-label">Deadline</label>
                                 <input type="date" class="form-control" id="deadline" name="deadline" value="{{ optional($case->deadline)->toDateString() }}">
                             </div>
@@ -146,9 +182,9 @@
                                 <label for="notes" class="form-label">Notes</label>
                                 <textarea class="form-control" id="notes" name="notes" rows="4">{{ $case->notes }}</textarea>
                             </div>
-                        </div>
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary" id="details-save">Save</button>
+                            <div class="col-12 text-center mt-4">
+                                <button type="submit" class="btn btn-primary px-5" id="details-save">Save</button>
+                            </div>
                         </div>
                     </form>
                 </div>

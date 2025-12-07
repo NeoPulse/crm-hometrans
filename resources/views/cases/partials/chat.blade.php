@@ -1,6 +1,6 @@
 <div id="case-chat-offcanvas" class="offcanvas offcanvas-end case-chat-offcanvas" tabindex="-1" aria-labelledby="case-chat-offcanvas-label">
     <div class="offcanvas-header border-bottom">
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 d-none">
             <i class="bi bi-chat-square-text"></i>
             <span class="fw-semibold" id="case-chat-offcanvas-label">Case chat</span>
             <span id="case-chat-header-new" class="badge bg-danger d-none">NEW</span>
@@ -16,25 +16,27 @@
             <div class="border-top p-3">
                 <form id="case-chat-form" class="d-flex flex-column gap-2" novalidate>
                     @csrf
-                    @if($isAdmin)
-                        <div class="flex-shrink-0" style="min-width: 160px;">
-                            <div class="d-flex align-items-center gap-2 text-nowrap">
-                                <select id="chat-send-as" name="send_as" class="form-select form-select-sm">
-                                    @foreach($chatProfile['labels'] as $label)
-                                        <option value="{{ $label['value'] }}" @if($chatProfile['default_label'] === $label['value']) selected @endif>{{ $label['label'] }}</option>
-                                    @endforeach
-                                </select>
+                    <div class="row g-2 align-items-center">
+                        @if($isAdmin)
+                            <div class="col-12 col-md-4">
+                                <div class="d-flex align-items-center gap-2 text-nowrap">
+                                    <select id="chat-send-as" name="send_as" class="form-select form-select-sm">
+                                        @foreach($chatProfile['labels'] as $label)
+                                            <option value="{{ $label['value'] }}" @if($chatProfile['default_label'] === $label['value']) selected @endif>{{ $label['label'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                    @else
-                        <input type="hidden" id="chat-send-as" name="send_as" value="{{ $chatProfile['default_label'] }}">
-                    @endif
+                        @else
+                            <input type="hidden" id="chat-send-as" name="send_as" value="{{ $chatProfile['default_label'] }}">
+                        @endif
 
-                    <div class="flex-grow-1">
-                        <div id="chat-dropzone" class="border border-dashed rounded p-3 bg-white text-center">
-                            <i class="bi bi-paperclip me-1"></i>
-                            <span id="chat-file-label">Drop a file here or click to browse.</span>
-                            <input type="file" name="file" id="chat-file" class="d-none" aria-label="Upload file">
+                        <div class="col-12 {{ $isAdmin ? 'col-md-8' : '' }}">
+                            <div id="chat-dropzone" class="border border-dashed rounded px-3 py-1 bg-white text-center">
+                                <i class="bi bi-paperclip me-1"></i>
+                                <span id="chat-file-label">Drop a file here or click to browse.</span>
+                                <input type="file" name="file" id="chat-file" class="d-none" aria-label="Upload file">
+                            </div>
                         </div>
                     </div>
 
@@ -124,34 +126,74 @@
             }
         };
 
+        // Decide alignment based on message role/label.
+        const getMessageAlignment = (message) => {
+            const label = (message.label || '').toLowerCase();
+
+            // sell-side -> left, buy-side -> right, manager -> center
+            if (label.includes('buy')) {
+                return 'justify-content-end message--buy';
+            }
+            if (label.includes('sell')) {
+                return 'justify-content-start message--sell';
+            }
+            if (label.includes('manager')) {
+                return 'justify-content-center message--manager';
+            }
+
+            // Fallback to old behaviour (own messages right, others left)
+            return message.is_mine ? 'justify-content-end' : 'justify-content-start';
+        };
+
         // Render a single message bubble respecting ownership and unread flags.
         const buildMessageElement = (message) => {
             const wrapper = document.createElement('div');
-            wrapper.className = `d-flex ${message.is_mine ? 'justify-content-end' : 'justify-content-start'}`;
+            const alignmentClass = getMessageAlignment(message);
+            wrapper.className = `d-flex ${alignmentClass}`;
 
             const bubble = document.createElement('div');
-            bubble.className = `case-chat-bubble ${message.is_mine ? 'mine' : 'theirs'} shadow-sm`;
+            bubble.className = `case-chat-bubble shadow-sm`;
             bubble.dataset.new = message.is_new ? '1' : '0';
 
+            // Start new header block
             const header = document.createElement('div');
-            header.className = 'd-flex align-items-center justify-content-between mb-1';
-            header.innerHTML = `<span class="fw-semibold">${message.label}</span><small class="text-muted mx-3">${formatTimestamp(message.created_at)}</small>`;
+            header.className = 'd-flex align-items-center mb-1';
 
+            // Label on the left
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'fw-semibold';
+            labelSpan.textContent = message.label;
+            header.appendChild(labelSpan);
+
+            // NEW badge next to the label
             if (message.is_new) {
                 const badge = document.createElement('span');
                 badge.className = 'badge bg-danger ms-2';
                 badge.textContent = 'NEW';
-                header.querySelector('.fw-semibold').appendChild(badge);
+                labelSpan.appendChild(badge);
             }
 
+            // Right side container for delete button and timestamp
+            const rightSide = document.createElement('div');
+            rightSide.className = 'd-flex align-items-center ms-auto';
+
+            // Delete icon link (for admins only), placed next to the timestamp
             if (chatConfig.isAdmin) {
-                const deleteBtn = document.createElement('button');
-                deleteBtn.type = 'button';
-                deleteBtn.className = 'btn btn-sm btn-outline-light text-nowrap ms-2';
-                deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
-                deleteBtn.addEventListener('click', () => deleteMessage(message.id, wrapper));
-                header.appendChild(deleteBtn);
+                const deleteLink = document.createElement('a');
+                deleteLink.href = 'javascript:void(0)';
+                deleteLink.className = 'text-muted me-2'; // simple icon, no border
+                deleteLink.innerHTML = '<i class="bi bi-trash"></i>';
+                deleteLink.addEventListener('click', () => deleteMessage(message.id, wrapper));
+                rightSide.appendChild(deleteLink);
             }
+
+            // Timestamp stays at the far right within the header
+            const timeEl = document.createElement('small');
+            timeEl.className = 'text-muted';
+            timeEl.textContent = formatTimestamp(message.created_at);
+            rightSide.appendChild(timeEl);
+
+            header.appendChild(rightSide);
 
             bubble.appendChild(header);
 

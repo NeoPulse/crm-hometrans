@@ -26,7 +26,7 @@ Route::middleware('auth')->group(function () {
         }
 
         // Admins default to the dashboard overview.
-        return redirect()->route('dashboard');
+        return redirect()->route('casemanager.index');
     })->name('home');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
