@@ -195,6 +195,47 @@ class LegalController extends Controller
     }
 
     /**
+     * Remove a solicitor when not attached to existing cases.
+     */
+    public function destroy(Request $request, User $legal): RedirectResponse
+    {
+        // Ensure only administrators can delete solicitor accounts.
+        if ($request->user()->role !== 'admin' || $legal->role !== 'legal') {
+            abort(403, 'Access denied');
+        }
+
+        // Prevent deletion if the solicitor participates in any case.
+        $caseCount = CaseFile::query()
+            ->where('sell_legal_id', $legal->id)
+            ->orWhere('buy_legal_id', $legal->id)
+            ->count();
+
+        if ($caseCount > 0) {
+            return redirect()->route('legals.edit', $legal)->withErrors('Legal cannot be deleted while assigned to existing cases.');
+        }
+
+        // Retain the identifier for logging after removal.
+        $legalId = $legal->id;
+        $legal->delete();
+
+        // Record the deletion event for audit purposes.
+        DB::table('activity_logs')->insert([
+            'user_id' => $request->user()->id,
+            'action' => 'delete',
+            'target_type' => 'legal',
+            'target_id' => $legalId,
+            'location' => 'legal card',
+            'details' => 'Deleted legal account.',
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Redirect to the solicitor list with a success message.
+        return redirect()->route('legals.index')->with('status', 'Legal deleted successfully.');
+    }
+
+    /**
      * Persist changes to solicitor and profile data.
      */
     public function update(Request $request, User $legal): RedirectResponse

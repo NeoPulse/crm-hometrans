@@ -8,6 +8,12 @@
             <span class="text-muted">Registered {{ optional($legal->created_at)->format('d/m/Y') }}</span>
         </div>
         <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Control to delete the solicitor when no cases are linked. -->
+            <form method="POST" action="{{ route('legals.destroy', $legal) }}" id="delete-legal-form">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-link text-danger p-0">Delete legal</button>
+            </form>
             <!-- Trigger to generate a new password for the solicitor. -->
             <form method="POST" action="{{ route('legals.password', $legal) }}">
                 @csrf
@@ -262,6 +268,14 @@
                 saveBtn.classList.remove('btn-primary');
                 saveBtn.classList.add('btn-warning');
                 saveBtn.textContent = 'Save changes';
+            }
+        });
+
+        // Confirm solicitor deletion to avoid accidental removal.
+        const deleteLegalForm = document.getElementById('delete-legal-form');
+        deleteLegalForm?.addEventListener('submit', (event) => {
+            if (!confirm('Are you sure you want to delete this legal? The account must not be assigned to cases.')) {
+                event.preventDefault();
             }
         });
 
