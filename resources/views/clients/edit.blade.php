@@ -134,7 +134,7 @@
         <div id="letter-block" class="mt-3 d-none">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    {{ optional($client->clientProfile)->letter ?? 'No letter saved for this client.' }}
+                    {!! optional($client->clientProfile)->letter ?? 'No letter saved for this client.' !!}
                 </div>
             </div>
         </div>
