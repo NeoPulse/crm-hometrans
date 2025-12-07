@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/casemanager', [CaseManagerController::class, 'store'])->name('casemanager.store');
     Route::get('/casemanager/list', [CaseManagerController::class, 'listIndex'])->name('casemanager.list');
     Route::get('/casemanager/{caseFile}/edit', [CaseManagerController::class, 'edit'])->name('casemanager.edit');
+    Route::delete('/casemanager/{caseFile}', [CaseManagerController::class, 'destroy'])->name('casemanager.destroy');
     Route::post('/casemanager/{caseFile}/participants', [CaseManagerController::class, 'updateParticipants'])->name('casemanager.participants');
     Route::post('/casemanager/{caseFile}/details', [CaseManagerController::class, 'updateDetails'])->name('casemanager.details');
     Route::post('/casemanager/{caseFile}/attention/{type}', [CaseManagerController::class, 'toggleAttention'])->name('casemanager.attention');
@@ -80,6 +81,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/legals', [LegalController::class, 'store'])->name('legals.store');
     Route::get('/legals/{legal}/edit', [LegalController::class, 'edit'])->name('legals.edit');
     Route::post('/legals/{legal}', [LegalController::class, 'update'])->name('legals.update');
+    Route::delete('/legals/{legal}', [LegalController::class, 'destroy'])->name('legals.destroy');
     Route::post('/legals/{legal}/password', [LegalController::class, 'generatePassword'])->name('legals.password');
     Route::post('/legals/{legal}/credentials-email', [LegalController::class, 'sendCredentials'])->name('legals.credentials');
 

@@ -19,8 +19,15 @@
                 @endforeach
             </div>
         </div>
-        <div class="col-6 col-lg-2 text-end">
-            <a class="btn btn-outline-secondary" href="{{ route('cases.show', $case) }}" target="_blank" rel="noopener">Show case</a>
+        <div class="col-6 col-lg-2">
+            <div class="d-flex justify-content-end gap-2">
+                <a class="btn btn-outline-secondary" href="{{ route('cases.show', $case) }}" target="_blank" rel="noopener">Show case</a>
+                <form method="POST" action="{{ route('casemanager.destroy', $case) }}" id="delete-case-form">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-link text-danger p-0">Delete case</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -265,6 +272,14 @@
                 toggleLogs.textContent = logsPanel.classList.contains('d-none') ? 'Show case logs' : 'Hide case logs';
             });
         }
+
+        // Confirm case deletion to prevent accidental data loss.
+        const deleteCaseForm = document.getElementById('delete-case-form');
+        deleteCaseForm?.addEventListener('submit', (event) => {
+            if (!confirm('Are you sure you want to delete this case? All related data will be removed.')) {
+                event.preventDefault();
+            }
+        });
 
         // Attach live user search to participant inputs with dropdown selection.
         document.querySelectorAll('.user-search').forEach((input) => {

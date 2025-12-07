@@ -210,6 +210,37 @@ class CaseManagerController extends Controller
     }
 
     /**
+     * Delete the specified case and cascade related records.
+     */
+    public function destroy(Request $request, CaseFile $caseFile): RedirectResponse
+    {
+        // Only administrators may remove cases from the system.
+        if ($request->user()->role !== 'admin') {
+            abort(403, 'Access denied');
+        }
+
+        // Store the identifier before deletion for audit logging.
+        $caseId = $caseFile->id;
+        $caseFile->delete();
+
+        // Record the deletion event in the activity log with context details.
+        DB::table('activity_logs')->insert([
+            'user_id' => $request->user()->id,
+            'action' => 'delete',
+            'target_type' => 'case',
+            'target_id' => $caseId,
+            'location' => 'case edit',
+            'details' => 'Deleted case from the case card.',
+            'ip_address' => $request->ip(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Redirect to the case list with success confirmation.
+        return redirect()->route('casemanager.index')->with('status', 'Case deleted successfully.');
+    }
+
+    /**
      * Update participant assignments for the provided case.
      */
     public function updateParticipants(Request $request, CaseFile $caseFile): RedirectResponse
