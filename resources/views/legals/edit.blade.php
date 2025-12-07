@@ -6,14 +6,13 @@
         <div class="d-flex align-items-center gap-3">
             <h1 class="h4 mb-0">Legal #{{ $legal->id }}</h1>
             <span class="text-muted">Registered {{ optional($legal->created_at)->format('d/m/Y') }}</span>
-        </div>
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <!-- Control to delete the solicitor when no cases are linked. -->
             <form method="POST" action="{{ route('legals.destroy', $legal) }}" id="delete-legal-form">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-link text-danger p-0">Delete legal</button>
             </form>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
             <!-- Trigger to generate a new password for the solicitor. -->
             <form method="POST" action="{{ route('legals.password', $legal) }}">
                 @csrf
@@ -70,11 +69,9 @@
                             <div class="flex-grow-1">
                                 <label for="avatar" class="form-label">Avatar</label>
                                 <input type="file" name="avatar" id="avatar" class="form-control @error('avatar') is-invalid @enderror" accept="image/*">
-                                @error('avatar')
+                                @if ($errors->has('avatar'))
                                     <div class="invalid-feedback">{{ $message }}</div>
-                                @else
-                                    <div class="form-text">Upload an image to represent this solicitor. It will be resized to a compact JPEG.</div>
-                                @enderror
+                                @endif
                             </div>
                         </div>
 

@@ -22,11 +22,6 @@
         <div class="col-6 col-lg-2">
             <div class="d-flex justify-content-end gap-2">
                 <a class="btn btn-outline-secondary" href="{{ route('cases.show', $case) }}" target="_blank" rel="noopener">Show case</a>
-                <form method="POST" action="{{ route('casemanager.destroy', $case) }}" id="delete-case-form">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-link text-danger p-0">Delete case</button>
-                </form>
             </div>
         </div>
     </div>
@@ -241,6 +236,13 @@
             </div>
         </div>
     </div>
+
+    <form method="POST" class="mt-3 text-end" action="{{ route('casemanager.destroy', $case) }}" id="delete-case-form">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-link text-danger">Delete case</button>
+    </form>
+
 @endsection
 
 @push('scripts')
