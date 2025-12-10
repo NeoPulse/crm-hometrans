@@ -1,10 +1,3 @@
-/**
-* @property string $role
-* @property int $id
-* @property string $name
-* @property string $email
-*/
-
 {{-- Header partial displays the shared navigation bar for staff pages. --}}
 @php
     // Determine whether the user is authenticated and resolve logout routing accordingly.
