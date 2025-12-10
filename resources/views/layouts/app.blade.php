@@ -21,8 +21,8 @@
 <div class="d-flex flex-column min-vh-100">
     @include('partials.header')
 
-    {{-- Page content container.--}}
-    <main class="container py-4 flex-grow-1">
+    {{-- Remove vertical padding for case chat routes --}}
+    <main class="container {{ request()->is('case/*') ? '' : 'py-4' }} flex-grow-1">
         @yield('content')
     </main>
 

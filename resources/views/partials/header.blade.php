@@ -1,3 +1,10 @@
+/**
+* @property string $role
+* @property int $id
+* @property string $name
+* @property string $email
+*/
+
 {{-- Header partial displays the shared navigation bar for staff pages. --}}
 @php
     // Determine whether the user is authenticated and resolve logout routing accordingly.
@@ -38,11 +45,11 @@
             <div class="d-flex align-items-center">
                 @if($brandTarget)
                     <a href="{{ $brandTarget }}" class="text-decoration-none">
-                        <img src="{{ asset('images/logo.svg') }}" alt="Logo" height="40">
+                        <img class="header__logo" src="{{ asset('images/logo.svg') }}" alt="Logo">
                     </a>
                 @else
                     {{-- Static logo --}}
-                    <img src="{{ asset('images/logo.svg') }}" alt="Logo" height="40">
+                    <img class="header__logo" src="{{ asset('images/logo.svg') }}" alt="Logo">
                 @endif
             </div>
             <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#primaryNavbar" aria-controls="primaryNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +57,7 @@
             </button>
             <div class="collapse navbar-collapse" id="primaryNavbar">
                 {{-- Render the navigation items appropriate for the current user role.--}}
-                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2 mt-3 mt-lg-0">
+                <ul class="navbar-nav ms-auto align-items-center gap-lg-2 mt-3 mt-lg-0">
                     @foreach($navLinks as $link)
                         <li class="nav-item">
                             <a class="nav-link {{ $link['active'] ? 'active' : '' }}" href="{{ $link['route'] }}">{{ $link['label'] }}</a>

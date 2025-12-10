@@ -10,10 +10,26 @@ body {
     padding-top: 12px;
 }
 
+.navbar-toggler {
+    padding: 0.2rem 0.35rem;
+}
+.navbar-toggler-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+}
 .navbar .nav-link.active {
     font-weight: 600;
     color: #272f4e !important;
     border-bottom: 2px solid #272f4e;
+}
+
+.header__logo {
+    height: 40px;
+}
+@media only screen and (max-width: 576px) {
+    .header__logo {
+        height: 30px;
+    }
 }
 
 .table-success {
@@ -36,9 +52,18 @@ body {
     border-color: #272f4e !important;
 }
 
+.chatSendBtn {
+    width: 2.5rem;
+    height: 2.5rem;
+    text-align: center;
+    line-height: 10px;
+    padding: 0;
+}
+
 
 .caseShow__participantName {
     max-width: 90px;
+    line-height: 20px;
 }
 
 
@@ -80,6 +105,9 @@ body {
     border-top: 1px solid #e9ecef;
     padding-top: 10px;
 }
+.taskTitle {
+    line-height: 20px;
+}
 
 /* Stage cards gain a pointer cursor and subtle highlight on hover. */
 .stage-card {
@@ -103,10 +131,6 @@ body {
     min-width: 130px;
     max-width: 240px;
     box-shadow: none !important;
-}
-
-.task__name {
-    max-width: 47%;
 }
 
 /* Keep the participant strip on a single line while allowing horizontal scroll on small screens. */
@@ -200,10 +224,11 @@ body {
 
 /* Expand supporting space on handheld devices while keeping controls accessible. */
 @media (max-width: 991.98px) {
+    /*
     .case-chat-body-margin {
         max-height: calc(100vh - 260px);
     }
-
+    */
     #case-chat-toggle {
         right: 1rem;
         bottom: 1rem;

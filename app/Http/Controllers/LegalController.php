@@ -341,7 +341,10 @@ class LegalController extends Controller
         }
 
         // Create and save a new secure password.
-        $newPassword = Str::random(8);
+        //$newPassword = Str::random(8);
+        $newPassword = collect(range(1, 6))
+            ->map(fn() => chr(rand(97, 122))) // 'a'–'z'
+            ->implode('');
         $legal->password = Hash::make($newPassword);
         $legal->save();
 

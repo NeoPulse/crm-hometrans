@@ -40,11 +40,16 @@
                         </div>
                     </div>
 
-                    <textarea id="chat-body" name="body" class="form-control" rows="2" placeholder="Message (Enter to send)"></textarea>
-
-                    <div class="d-flex align-items-end">
+                    <div class="d-flex align-items-end gap-2">
+                        <div class="flex-grow-1">
+                            <textarea id="chat-body" name="body" class="form-control" rows="2" placeholder="Message (Enter to send)"></textarea>
+                        </div>
                         <div id="chat-file-chip" class="badge bg-secondary d-none"></div>
-                        {{-- <button type="submit" class="btn btn-success">Send</button>--}}
+                        <button type="submit"
+                                class="chatSendBtn btn btn-success rounded-circle d-flex align-items-center justify-content-center"
+                                aria-label="Send message">
+                            <i class="bi bi-send-fill fs-5"></i>
+                        </button>
                     </div>
                 </form>
             </div>

@@ -2,9 +2,9 @@
 
 @section('content')
 
-    <div class="row align-items-center">
+    <div class="row align-items-center py-2">
         <div class="col-6 col-lg-3">
-            <h1 class="fs-4 mb-0">
+            <h1 class="fs-5 mb-0">
                 @if($isAdmin)
                     <a href="{{ route('casemanager.edit', $case) }}" target="_blank" class="text-body">Case {{ $case->postal_code }}</a>
                 @else
@@ -19,8 +19,8 @@
                     <span id="case-chat-unread" class="badge bg-danger ms-2 d-none">0</span>
             </button>
         </div>
-        <div class="col-lg-7 mt-3 mt-lg-0 text-lg-end">
-            <div class="d-inline-flex gap-sm-3 border border-primary rounded bg-white">
+        <div class="col-lg-7 mt-2 mt-lg-0 text-lg-end">
+            <div class="d-flex d-lg-inline-flex justify-content-between gap-sm-3 border border-primary rounded bg-white">
 
                 @foreach ($participants as $participant)
                     @php
@@ -40,26 +40,34 @@
 
                         $popoverLines = [];
 
-                        $popoverLines[] = e($user->display_name ?? $user->name ?? 'User');
+                        $popoverLines[] = '<strong>' . e($user->display_name ?? $user->name ?? 'User') . '</strong>';
 
-                        if (!empty($participant['office'])) {
-                            $popoverLines[] = 'Office: ' . e($participant['office']);
-                        }
+                        if ($user['role'] == 'admin') {
 
-                        if ($user->phone) {
-                            $popoverLines[] =
-                                "<a href='tel:" . e($user->phone) . "'>" . e($user->phone) . "</a>";
-                        }
+                            $popoverLines[] = "Mob: <a href='tel:07766737807'>077 6673 7807</a>";
+                            $popoverLines[] = "Tel: <a href='tel:02030516205'>020 3051 6205</a>";
+                            $popoverLines[] = "Email: <a href='mailto:support@hometrans.uk'>support@hometrans.uk</a>";
 
-                        if ($user->email) {
-                            $popoverLines[] =
-                                "<a href='mailto:" . e($user->email) . "'>" . e($user->email) . "</a>";
+                        }else{
+
+                            if ($user->phone) {
+                                $popoverLines[] = "Mob: <a href='tel:" . e($user->phone) . "'>" . e($user->phone) . "</a>";
+                            }
+
+                            if ($participant['office']) {
+                                $popoverLines[] = "Office: <a href='tel:" . e($participant['office']) . "'>" . e($participant['office']) . "</a>";
+                            }
+
+                            if ($user->email) {
+                                $popoverLines[] = "Email: <a href='mailto:" . e($user->email) . "'>" . e($user->email) . "</a>";
+                            }
+
                         }
 
                         $popover = implode('<br>', $popoverLines);
                     @endphp
 
-                    <div class="team-member d-md-flex align-items-center text-start justify-content-between px-3 py-1 flex-shrink-0 rounded"
+                    <div class="team-member d-md-flex align-items-center text-center text-lg-start justify-content-between px-lg-3 py-1 flex-shrink-0 rounded"
                          tabindex="0"
                          data-bs-toggle="popover"
                          data-bs-trigger="focus"
@@ -67,7 +75,7 @@
                          data-bs-placement="bottom"
                          data-bs-content="{!! $popover !!}">
 
-                        <img src="{{ $avatar }}" class="rounded-circle avatar-65 me-3" alt="Avatar">
+                        <img src="{{ $avatar }}" class="rounded-circle avatar-65 me-lg-3" alt="Avatar">
 
                         <div class="caseShow__participantName">
                             {{ $label }}
@@ -78,13 +86,13 @@
         </div>
     </div>
 
-    <hr class="pb-3">
+    <hr class="d-none d-lg-block mt-0">
 
-    <div class="row g-5">
+    <div class="row g-lg-5">
         <div class="col-12 col-lg-5">
             {{-- Stage list column showing all stages with progress. --}}
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h2 class="h5 mb-2">Stages:</h2>
+                <h2 class="h5 mt-1 mt-lg-0 mb-1">Stages:</h2>
             </div>
             <div id="stage-list" class="d-flex flex-column gap-2"></div>
             <div id="no-stages-alert" class="alert alert-info d-none">No stages have been added yet.</div>
@@ -204,7 +212,7 @@
                 const isMobile = isMobileLayout();
                 const isActiveDesktop = stage.id === activeStageId && !isMobile;
                 const isExpandedMobile = openedMobileStages.has(stage.id);
-                card.className = `card stage-card shadow-sm mb-2 border-2 ${isActiveDesktop ? 'border-primary' : ''}`;
+                card.className = `card stage-card shadow-sm border-2 ${isActiveDesktop ? 'border-primary' : ''}`;
                 card.dataset.stageId = stage.id;
 
                 card.innerHTML = `
@@ -398,14 +406,17 @@
 
                 return `
                     <div class="d-flex align-items-center gap-1 border-bottom pb-1 mb-1 task-row position-relative">
-                        <div class="fw-semibold text-muted" style="min-width: 24px;">${index + 1}.</div>
-                        <div class="flex-grow-1 task__name">
-                            <div class="text-truncate" title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</div>
+                        <div class="text-muted pe-1">${index + 1}.</div>
+                        <div class="flex-grow-1">
+                            <div class="taskTitle" title="${escapeHtml(task.name)}">${escapeHtml(task.name)}</div>
                         </div>
                         <div class="d-flex align-items-center gap-2 ms-auto justify-content-end text-end">
                             ${task.is_new ? '<span class="badge bg-danger">new</span>' : ''}
-                            <div class="badge ${deadlineClass} text-dark rounded task-deadline">
-                                ${isAdmin ? `<input type="date" class="form-control form-control-sm border-0 bg-transparent task-deadline-input" value="${task.deadline ?? ''}" data-task-id="${task.id}">` : task.deadline_display}
+                            <div class="${deadlineClass} text-dark rounded task-deadline">
+                                ${isAdmin
+                                    ? `<input type="date" class="form-control form-control-sm border-0 bg-transparent task-deadline-input" value="${task.deadline ?? ''}" data-task-id="${task.id}">`
+                                    : `<span class="p-2">${task.deadline_display}</span>`
+                                }
                             </div>
                             ${isAdmin ? dropdownStatus(task.id, statusIcon, task.name) : statusIcon}
                         </div>

@@ -281,7 +281,10 @@ class ClientController extends Controller
         }
 
         // Create and persist a fresh password for the client account.
-        $newPassword = Str::random(8);
+        //$newPassword = Str::random(8);
+        $newPassword = collect(range(1, 6))
+            ->map(fn() => chr(rand(97, 122))) // 'a'–'z'
+            ->implode('');
         $client->password = Hash::make($newPassword);
         $client->save();
 
